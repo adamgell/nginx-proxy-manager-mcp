@@ -35,11 +35,49 @@ Add to your Claude Desktop configuration (`claude_desktop_config.json`):
       "command": "npx",
       "args": ["nginx-proxy-manager-mcp"],
       "env": {
-        "NPM_BASE_URL": "http://192.168.2.4/api"
+        "NPM_BASE_URL": "http://192.168.2.4:81/api"
       }
     }
   }
 }
+```
+
+## Quick Start
+
+1. **Authenticate with NPM**:
+   ```
+   Use npm_authenticate with your NPM credentials:
+   - identity: your-email@example.com
+   - secret: your-password
+   ```
+
+2. **List existing proxy hosts**:
+   ```
+   Use npm_list_proxy_hosts to see all configured hosts
+   ```
+
+3. **Create a test proxy**:
+   ```
+   Use npm_create_proxy_host with:
+   - domain_names: ["test.example.com"]
+   - forward_scheme: "http"
+   - forward_host: "127.0.0.1"
+   - forward_port: 80
+   - block_exploits: true
+   ```
+
+## Testing the MCP Server
+
+To test the nginx-proxy-manager-mcp server:
+
+1. **Enable stdout logging** (already configured in the latest version)
+2. **Authenticate**: The server will log the authentication token and status
+3. **Create a test proxy**: Use a test domain pointing to localhost
+4. **Verify**: Check the proxy responds with curl or browser
+
+Example test command:
+```bash
+curl -I http://test.example.com
 ```
 
 ## Available Tools
@@ -141,7 +179,23 @@ npm run build
 
 # Run in development mode
 npm run dev
+
+# Run tests
+npm test
+
+# Run integration tests with Docker
+npm run test:integration
 ```
+
+### Debugging
+
+The server includes stdout logging that shows:
+- Initialization with base URL
+- Authentication attempts and tokens
+- Tool calls and API requests
+- Response counts and status
+
+This helps debug connection issues and verify the MCP server is working correctly.
 
 ## API Coverage
 

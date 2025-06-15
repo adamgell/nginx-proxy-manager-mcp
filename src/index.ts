@@ -26,6 +26,7 @@ class NginxProxyManagerClient {
 
   async authenticate(identity: string, secret: string): Promise<void> {
     try {
+      console.log(`[NPM-MCP] Authenticating with identity: ${identity}`);
       const response = await this.client.post('/tokens', {
         identity,
         secret,
@@ -33,7 +34,10 @@ class NginxProxyManagerClient {
       });
       this.token = response.data.token;
       this.client.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+      console.log(`[NPM-MCP] Authentication successful! Token: ${this.token}`);
+      console.log(`[NPM-MCP] Token expires: ${response.data.expires}`);
     } catch (error: any) {
+      console.error(`[NPM-MCP] Authentication failed: ${error.message}`);
       throw new Error(`Authentication failed: ${error.message}`);
     }
   }
@@ -41,6 +45,7 @@ class NginxProxyManagerClient {
   // Proxy Hosts
   async getProxyHosts(expand?: string) {
     const params = expand ? { expand } : {};
+    console.log(`[NPM-MCP] GET /nginx/proxy-hosts`);
     return this.client.get('/nginx/proxy-hosts', { params });
   }
 
@@ -242,6 +247,7 @@ class NginxProxyManagerMCPServer {
 
     // Initialize with environment variables
     const baseUrl = process.env.NPM_BASE_URL || 'http://localhost:81/api';
+    console.log(`[NPM-MCP] Initializing with base URL: ${baseUrl}`);
     this.client = new NginxProxyManagerClient(baseUrl);
 
     this.setupHandlers();
@@ -371,13 +377,16 @@ class NginxProxyManagerMCPServer {
         switch (name) {
           case 'npm_authenticate': {
             const { identity, secret } = AuthenticateSchema.parse(args);
+            console.log(`[NPM-MCP] Tool called: npm_authenticate`);
             await this.client.authenticate(identity, secret);
             return { content: [{ type: 'text', text: 'Authentication successful' }] };
           }
 
           case 'npm_list_proxy_hosts': {
             const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_proxy_hosts`);
             const response = await this.client.getProxyHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} proxy hosts`);
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 
