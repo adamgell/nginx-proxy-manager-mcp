@@ -174,6 +174,74 @@ class NginxProxyManagerClient {
   async getHostsReport() {
     return this.client.get('/reports/hosts');
   }
+
+  // Redirection Hosts
+  async getRedirectionHosts(expand?: string) {
+    const params = expand ? { expand } : {};
+    console.log(`[NPM-MCP] GET /nginx/redirection-hosts`);
+    return this.client.get('/nginx/redirection-hosts', { params });
+  }
+
+  async getRedirectionHost(id: number) {
+    return this.client.get(`/nginx/redirection-hosts/${id}`);
+  }
+
+  async createRedirectionHost(data: any) {
+    return this.client.post('/nginx/redirection-hosts', data);
+  }
+
+  async updateRedirectionHost(id: number, data: any) {
+    return this.client.put(`/nginx/redirection-hosts/${id}`, data);
+  }
+
+  async deleteRedirectionHost(id: number) {
+    return this.client.delete(`/nginx/redirection-hosts/${id}`);
+  }
+
+  async enableRedirectionHost(id: number) {
+    return this.client.post(`/nginx/redirection-hosts/${id}/enable`);
+  }
+
+  async disableRedirectionHost(id: number) {
+    return this.client.post(`/nginx/redirection-hosts/${id}/disable`);
+  }
+
+  // Dead Hosts (404 Hosts)
+  async getDeadHosts(expand?: string) {
+    const params = expand ? { expand } : {};
+    console.log(`[NPM-MCP] GET /nginx/dead-hosts`);
+    return this.client.get('/nginx/dead-hosts', { params });
+  }
+
+  async getDeadHost(id: number) {
+    return this.client.get(`/nginx/dead-hosts/${id}`);
+  }
+
+  async createDeadHost(data: any) {
+    return this.client.post('/nginx/dead-hosts', data);
+  }
+
+  async updateDeadHost(id: number, data: any) {
+    return this.client.put(`/nginx/dead-hosts/${id}`, data);
+  }
+
+  async deleteDeadHost(id: number) {
+    return this.client.delete(`/nginx/dead-hosts/${id}`);
+  }
+
+  async enableDeadHost(id: number) {
+    return this.client.post(`/nginx/dead-hosts/${id}/enable`);
+  }
+
+  async disableDeadHost(id: number) {
+    return this.client.post(`/nginx/dead-hosts/${id}/disable`);
+  }
+
+  // Audit Log
+  async getAuditLog() {
+    console.log(`[NPM-MCP] GET /audit-log`);
+    return this.client.get('/audit-log');
+  }
 }
 
 // Tool Schemas
@@ -225,6 +293,33 @@ const AccessListSchema = z.object({
     address: z.string(),
     directive: z.enum(['allow', 'deny']),
   })).optional(),
+});
+
+const RedirectionHostSchema = z.object({
+  domain_names: z.array(z.string()).describe('Array of domain names'),
+  forward_http_code: z.number().min(300).max(308).describe('Redirect HTTP Status Code'),
+  forward_scheme: z.enum(['auto', 'http', 'https']).describe('Forward scheme'),
+  forward_domain_name: z.string().describe('Target domain name'),
+  preserve_path: z.boolean().optional().describe('Should the path be preserved'),
+  certificate_id: z.union([z.number().min(0), z.literal('new')]).optional(),
+  ssl_forced: z.boolean().optional(),
+  hsts_enabled: z.boolean().optional(),
+  hsts_subdomains: z.boolean().optional(),
+  http2_support: z.boolean().optional(),
+  block_exploits: z.boolean().optional(),
+  advanced_config: z.string().optional(),
+  meta: z.object({}).optional(),
+});
+
+const DeadHostSchema = z.object({
+  domain_names: z.array(z.string()).describe('Array of domain names'),
+  certificate_id: z.union([z.number().min(0), z.literal('new')]).optional(),
+  ssl_forced: z.boolean().optional(),
+  hsts_enabled: z.boolean().optional(),
+  hsts_subdomains: z.boolean().optional(),
+  http2_support: z.boolean().optional(),
+  advanced_config: z.string().optional(),
+  meta: z.object({}).optional(),
 });
 
 // MCP Server
@@ -367,6 +462,110 @@ class NginxProxyManagerMCPServer {
           description: 'Get hosts statistics report',
           inputSchema: z.object({}),
         },
+        // Redirection Hosts
+        {
+          name: 'npm_list_redirection_hosts',
+          description: 'List all redirection hosts',
+          inputSchema: z.object({
+            expand: z.string().optional().describe('Expand: owner, certificate'),
+          }),
+        },
+        {
+          name: 'npm_get_redirection_host',
+          description: 'Get a specific redirection host',
+          inputSchema: z.object({
+            id: z.number().describe('Redirection host ID'),
+          }),
+        },
+        {
+          name: 'npm_create_redirection_host',
+          description: 'Create a new redirection host',
+          inputSchema: RedirectionHostSchema,
+        },
+        {
+          name: 'npm_update_redirection_host',
+          description: 'Update an existing redirection host',
+          inputSchema: z.object({
+            id: z.number().describe('Redirection host ID'),
+            data: RedirectionHostSchema.partial(),
+          }),
+        },
+        {
+          name: 'npm_delete_redirection_host',
+          description: 'Delete a redirection host',
+          inputSchema: z.object({
+            id: z.number().describe('Redirection host ID'),
+          }),
+        },
+        {
+          name: 'npm_enable_redirection_host',
+          description: 'Enable a redirection host',
+          inputSchema: z.object({
+            id: z.number().describe('Redirection host ID'),
+          }),
+        },
+        {
+          name: 'npm_disable_redirection_host',
+          description: 'Disable a redirection host',
+          inputSchema: z.object({
+            id: z.number().describe('Redirection host ID'),
+          }),
+        },
+        // Dead Hosts (404 Hosts)
+        {
+          name: 'npm_list_dead_hosts',
+          description: 'List all 404 hosts',
+          inputSchema: z.object({
+            expand: z.string().optional().describe('Expand: owner, certificate'),
+          }),
+        },
+        {
+          name: 'npm_get_dead_host',
+          description: 'Get a specific 404 host',
+          inputSchema: z.object({
+            id: z.number().describe('404 host ID'),
+          }),
+        },
+        {
+          name: 'npm_create_dead_host',
+          description: 'Create a new 404 host',
+          inputSchema: DeadHostSchema,
+        },
+        {
+          name: 'npm_update_dead_host',
+          description: 'Update an existing 404 host',
+          inputSchema: z.object({
+            id: z.number().describe('404 host ID'),
+            data: DeadHostSchema.partial(),
+          }),
+        },
+        {
+          name: 'npm_delete_dead_host',
+          description: 'Delete a 404 host',
+          inputSchema: z.object({
+            id: z.number().describe('404 host ID'),
+          }),
+        },
+        {
+          name: 'npm_enable_dead_host',
+          description: 'Enable a 404 host',
+          inputSchema: z.object({
+            id: z.number().describe('404 host ID'),
+          }),
+        },
+        {
+          name: 'npm_disable_dead_host',
+          description: 'Disable a 404 host',
+          inputSchema: z.object({
+            id: z.number().describe('404 host ID'),
+          }),
+        },
+        // Audit Log
+        {
+          name: 'npm_get_audit_log',
+          description: 'Get the audit log',
+          inputSchema: z.object({}),
+        },
       ],
     }));
 
@@ -476,6 +675,103 @@ class NginxProxyManagerMCPServer {
 
           case 'npm_get_hosts_report': {
             const response = await this.client.getHostsReport();
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          // Redirection Hosts
+          case 'npm_list_redirection_hosts': {
+            const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_redirection_hosts`);
+            const response = await this.client.getRedirectionHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} redirection hosts`);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_get_redirection_host': {
+            const { id } = args as { id: number };
+            const response = await this.client.getRedirectionHost(id);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_create_redirection_host': {
+            const data = RedirectionHostSchema.parse(args);
+            const response = await this.client.createRedirectionHost(data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_update_redirection_host': {
+            const { id, data } = args as { id: number; data: any };
+            const response = await this.client.updateRedirectionHost(id, data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_delete_redirection_host': {
+            const { id } = args as { id: number };
+            await this.client.deleteRedirectionHost(id);
+            return { content: [{ type: 'text', text: 'Redirection host deleted successfully' }] };
+          }
+
+          case 'npm_enable_redirection_host': {
+            const { id } = args as { id: number };
+            await this.client.enableRedirectionHost(id);
+            return { content: [{ type: 'text', text: 'Redirection host enabled successfully' }] };
+          }
+
+          case 'npm_disable_redirection_host': {
+            const { id } = args as { id: number };
+            await this.client.disableRedirectionHost(id);
+            return { content: [{ type: 'text', text: 'Redirection host disabled successfully' }] };
+          }
+
+          // Dead Hosts (404 Hosts)
+          case 'npm_list_dead_hosts': {
+            const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_dead_hosts`);
+            const response = await this.client.getDeadHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} dead hosts`);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_get_dead_host': {
+            const { id } = args as { id: number };
+            const response = await this.client.getDeadHost(id);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_create_dead_host': {
+            const data = DeadHostSchema.parse(args);
+            const response = await this.client.createDeadHost(data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_update_dead_host': {
+            const { id, data } = args as { id: number; data: any };
+            const response = await this.client.updateDeadHost(id, data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_delete_dead_host': {
+            const { id } = args as { id: number };
+            await this.client.deleteDeadHost(id);
+            return { content: [{ type: 'text', text: '404 host deleted successfully' }] };
+          }
+
+          case 'npm_enable_dead_host': {
+            const { id } = args as { id: number };
+            await this.client.enableDeadHost(id);
+            return { content: [{ type: 'text', text: '404 host enabled successfully' }] };
+          }
+
+          case 'npm_disable_dead_host': {
+            const { id } = args as { id: number };
+            await this.client.disableDeadHost(id);
+            return { content: [{ type: 'text', text: '404 host disabled successfully' }] };
+          }
+
+          // Audit Log
+          case 'npm_get_audit_log': {
+            console.log(`[NPM-MCP] Tool called: npm_get_audit_log`);
+            const response = await this.client.getAuditLog();
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 

@@ -109,6 +109,27 @@ curl -I http://test.example.com
 ### Reports
 - `npm_get_hosts_report` - Get statistics on all host types
 
+### Redirection Hosts
+- `npm_list_redirection_hosts` - List all redirection hosts
+- `npm_get_redirection_host` - Get a specific redirection host
+- `npm_create_redirection_host` - Create a new redirection host
+- `npm_update_redirection_host` - Update an existing redirection host
+- `npm_delete_redirection_host` - Delete a redirection host
+- `npm_enable_redirection_host` - Enable a redirection host
+- `npm_disable_redirection_host` - Disable a redirection host
+
+### 404 Hosts  
+- `npm_list_dead_hosts` - List all 404 hosts
+- `npm_get_dead_host` - Get a specific 404 host
+- `npm_create_dead_host` - Create a new 404 host
+- `npm_update_dead_host` - Update an existing 404 host
+- `npm_delete_dead_host` - Delete a 404 host
+- `npm_enable_dead_host` - Enable a 404 host
+- `npm_disable_dead_host` - Disable a 404 host
+
+### Audit Log
+- `npm_get_audit_log` - Get the audit log
+
 ## Example Usage
 
 ### Create a Proxy Host
@@ -164,6 +185,32 @@ curl -I http://test.example.com
 }
 ```
 
+### Create a Redirection Host
+
+```typescript
+// Tool: npm_create_redirection_host
+{
+  "domain_names": ["old.example.com"],
+  "forward_http_code": 301,
+  "forward_scheme": "https",
+  "forward_domain_name": "new.example.com",
+  "preserve_path": true,
+  "ssl_forced": true,
+  "block_exploits": true
+}
+```
+
+### Create a 404 Host
+
+```typescript
+// Tool: npm_create_dead_host
+{
+  "domain_names": ["*.example.com"],
+  "ssl_forced": false,
+  "certificate_id": 0
+}
+```
+
 ## Development
 
 ```bash
@@ -201,15 +248,15 @@ This helps debug connection issues and verify the MCP server is working correctl
 
 This MCP server covers the following Nginx Proxy Manager API endpoints:
 
-- ✅ Proxy Hosts
-- ✅ SSL Certificates
-- ✅ Access Lists
+- ✅ Proxy Hosts - Full CRUD operations plus enable/disable
+- ✅ SSL Certificates - Create, renew, and delete (Let's Encrypt and custom)
+- ✅ Access Lists - Full CRUD operations
+- ✅ Redirection Hosts - Full CRUD operations plus enable/disable
+- ✅ 404 Hosts - Full CRUD operations plus enable/disable
+- ✅ Audit Log - Read audit log entries
+- ✅ Reports - Host statistics
 - ✅ Users (partial - main operations)
 - ✅ Streams (partial - main operations)
-- ✅ Reports
-- ⚠️ Redirection Hosts (not implemented yet)
-- ⚠️ 404 Hosts (not implemented yet)
-- ⚠️ Audit Log (not implemented yet)
 
 ## Security Notes
 
