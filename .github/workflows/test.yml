@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
-    services:
-      # We'll use docker-compose instead of GitHub services for better control
+    # We'll use docker-compose instead of GitHub services for better control
     
     steps:
       - name: 📥 Checkout repository
