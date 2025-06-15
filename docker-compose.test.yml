@@ -1,0 +1,47 @@
+services:
+  db:
+    image: mariadb:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: npm_test_password
+      MYSQL_DATABASE: npm
+      MYSQL_USER: npm
+      MYSQL_PASSWORD: npm_test_password
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pnpm_test_password"]
+      timeout: 20s
+      retries: 10
+
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+      - "8181:81"
+    environment:
+      DB_MYSQL_HOST: db
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: npm
+      DB_MYSQL_PASSWORD: npm_test_password
+      DB_MYSQL_NAME: npm
+      # Default admin user for testing
+      INITIAL_ADMIN_EMAIL: test@example.com
+      INITIAL_ADMIN_PASSWORD: test123456
+    volumes:
+      - npm_data:/data
+      - npm_ssl:/etc/letsencrypt
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:81/api/schema"]
+      timeout: 20s
+      retries: 10
+
+volumes:
+  db_data:
+  npm_data:
+  npm_ssl:

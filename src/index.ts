@@ -33,7 +33,7 @@ class NginxProxyManagerClient {
       });
       this.token = response.data.token;
       this.client.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(`Authentication failed: ${error.message}`);
     }
   }
@@ -473,7 +473,7 @@ class NginxProxyManagerMCPServer {
           default:
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error.response) {
           throw new McpError(
             ErrorCode.InternalError,

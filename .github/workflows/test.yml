@@ -1,0 +1,162 @@
+name: 🧪 Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NPM_BASE_URL: http://localhost:8181/api
+  TEST_EMAIL: test@example.com
+  TEST_PASSWORD: test123456
+
+jobs:
+  test:
+    name: 🔬 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      # We'll use docker-compose instead of GitHub services for better control
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: |
+          npm ci
+          npm run build
+
+      - name: 🐳 Start NPM with Docker Compose
+        run: |
+          echo "🚀 Starting NPM test environment..."
+          docker-compose -f docker-compose.test.yml up -d
+          
+          echo "⏳ Waiting for services to be healthy..."
+          timeout 300 bash -c 'until docker-compose -f docker-compose.test.yml ps | grep -q "healthy"; do sleep 5; done'
+          
+          echo "📊 Checking service status..."
+          docker-compose -f docker-compose.test.yml ps
+          
+          echo "🔍 Checking NPM API health..."
+          timeout 60 bash -c 'until curl -f http://localhost:8181/api/schema > /dev/null 2>&1; do sleep 2; done'
+
+      - name: 🏃‍♂️ Run tests
+        run: |
+          echo "🧪 Running test suite..."
+          npm test -- --coverage --verbose
+        env:
+          NODE_ENV: test
+
+      - name: 📈 Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: success()
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: 📋 Display test results
+        if: always()
+        run: |
+          echo "📊 Test Summary"
+          if [ -f coverage/coverage-summary.json ]; then
+            cat coverage/coverage-summary.json | jq '.total'
+          fi
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          echo "🧹 Cleaning up test environment..."
+          docker-compose -f docker-compose.test.yml down -v
+          docker system prune -f
+
+  lint:
+    name: 🔍 Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔧 Build TypeScript
+        run: npm run build
+
+      - name: ✅ Check build artifacts
+        run: |
+          echo "📁 Build output:"
+          ls -la dist/
+          echo "📄 Main entry point:"
+          head -20 dist/index.js
+
+  security:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔍 Audit dependencies
+        run: |
+          npm audit --audit-level high
+          npm audit --audit-level critical
+
+      - name: 📋 List dependencies
+        run: |
+          echo "📊 Production dependencies:"
+          npm ls --prod --depth=0
+          echo ""
+          echo "🛠 Development dependencies:"
+          npm ls --dev --depth=0
+
+  docker-test:
+    name: 🐳 Docker Integration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐳 Test Docker Compose configuration
+        run: |
+          echo "🔍 Validating docker-compose.test.yml..."
+          docker-compose -f docker-compose.test.yml config
+          
+          echo "🚀 Testing service startup..."
+          docker-compose -f docker-compose.test.yml up -d
+          
+          echo "⏳ Waiting for services..."
+          sleep 60
+          
+          echo "📊 Service status:"
+          docker-compose -f docker-compose.test.yml ps
+          
+          echo "📋 Service logs:"
+          docker-compose -f docker-compose.test.yml logs --tail=50 npm
+          
+          echo "🧹 Cleanup:"
+          docker-compose -f docker-compose.test.yml down -v
