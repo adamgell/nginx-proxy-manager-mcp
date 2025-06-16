@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "nginx-proxy-manager": {
+      "command": "node",
+      "args": ["/Users/adam.gell/Documents/GitHub/nginx-proxy-manager-mcp/dist/index.js"],
+      "env": {
+        "NPM_BASE_URL": "http://192.168.2.4:81/api"
+      }
+    }
+  }
+}

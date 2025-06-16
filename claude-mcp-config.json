@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "nginx-proxy-manager": {
+      "command": "nginx-proxy-manager-mcp",
+      "env": {
+        "NPM_BASE_URL": "http://192.168.2.4:81/api"
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+# Test files
+tests/
+test-*.js
+create-proxy-host.js
+direct-api-create.js
+*.test.ts
+*.test.js
+jest.config.js
+docker-compose.test.yml
+
+# Coverage reports
+coverage/
+
+# Configuration files
+claude-mcp-config*.json
+tsconfig.json
+
+# Documentation (except README)
+TESTING.md
+TODO.md
+CLAUDE.md
+
+# Build artifacts
+*.tgz
+
+# Git directory
+git-github.com-adamgell-nginx-proxy-manager-mcp.git/
+
+# Development files
+.vscode/
+.idea/
+*.log
+.DS_Store
+
+# Source files (we're publishing dist only)
+src/

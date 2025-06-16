@@ -9,293 +9,245 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import axios, { AxiosInstance } from 'axios';
 import { z } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
-// Enhanced logging utility
-class Logger {
-  private enabled: boolean;
-  
-  constructor() {
-    this.enabled = process.env.NPM_MCP_DEBUG === 'true';
-  }
-  
-  log(message: string, data?: any) {
-    if (this.enabled) {
-      console.error(`[NPM-MCP] ${new Date().toISOString()} - ${message}`);
-      if (data) {
-        console.error(JSON.stringify(data, null, 2));
-      }
-    }
-  }
-  
-  error(message: string, error?: any) {
-    console.error(`[NPM-MCP ERROR] ${new Date().toISOString()} - ${message}`);
-    if (error) {
-      console.error(error);
-    }
-  }
-}
-
-const logger = new Logger();
-
-// Enhanced API Client with authentication state
+// API Client for Nginx Proxy Manager
 class NginxProxyManagerClient {
-  private baseUrl: string;
-  private axios: AxiosInstance;
-  private token: string | null = null;
-  private tokenExpiry: Date | null = null;
+  private client: AxiosInstance;
+  private token?: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-    this.axios = axios.create({
+  constructor(private baseUrl: string) {
+    this.client = axios.create({
       baseURL: baseUrl,
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 30000,
     });
-    
-    // Add request interceptor for auth
-    this.axios.interceptors.request.use((config) => {
-      if (this.token && this.isTokenValid()) {
-        config.headers.Authorization = `Bearer ${this.token}`;
-      }
-      logger.log(`Request: ${config.method?.toUpperCase()} ${config.url}`);
-      return config;
-    });
-    
-    // Add response interceptor for debugging
-    this.axios.interceptors.response.use(
-      (response) => {
-        logger.log(`Response: ${response.status} ${response.config.url}`);
-        return response;
-      },
-      (error) => {
-        logger.error(`Response Error: ${error.response?.status} ${error.config?.url}`, error.response?.data);
-        return Promise.reject(error);
-      }
-    );
   }
 
-  updateBaseUrl(newBaseUrl: string) {
-    this.baseUrl = newBaseUrl;
-    this.axios.defaults.baseURL = newBaseUrl;
-    logger.log(`Updated base URL to: ${newBaseUrl}`);
-  }
-
-  isAuthenticated(): boolean {
-    return this.token !== null && this.isTokenValid();
-  }
-  
-  private isTokenValid(): boolean {
-    if (!this.tokenExpiry) return false;
-    return new Date() < this.tokenExpiry;
-  }
-  
-  getAuthStatus(): { authenticated: boolean; expiresAt?: string } {
-    if (!this.isAuthenticated()) {
-      return { authenticated: false };
-    }
-    return { 
-      authenticated: true, 
-      expiresAt: this.tokenExpiry?.toISOString() 
-    };
-  }
-
-  async authenticate(identity: string, secret: string) {
+  async authenticate(identity: string, secret: string): Promise<void> {
     try {
-      const response = await this.axios.post('/tokens', { identity, secret });
+      console.log(`[NPM-MCP] Authenticating with identity: ${identity}`);
+      const response = await this.client.post('/tokens', {
+        identity,
+        secret,
+        scope: 'user',
+      });
       this.token = response.data.token;
-      // NPM tokens typically expire after 1 hour
-      this.tokenExpiry = new Date(Date.now() + 3600000);
-      logger.log('Authentication successful', { identity, expiresAt: this.tokenExpiry });
-      return response;
-    } catch (error) {
-      this.token = null;
-      this.tokenExpiry = null;
-      throw error;
+      this.client.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+      console.log(`[NPM-MCP] Authentication successful! Token: ${this.token}`);
+      console.log(`[NPM-MCP] Token expires: ${response.data.expires}`);
+    } catch (error: any) {
+      console.error(`[NPM-MCP] Authentication failed: ${error.message}`);
+      throw new Error(`Authentication failed: ${error.message}`);
     }
   }
-  
+
   // Proxy Hosts
   async getProxyHosts(expand?: string) {
-    this.requireAuth();
     const params = expand ? { expand } : {};
-    return this.axios.get('/nginx/proxy-hosts', { params });
+    console.log(`[NPM-MCP] GET /nginx/proxy-hosts`);
+    return this.client.get('/nginx/proxy-hosts', { params });
   }
 
   async getProxyHost(id: number) {
-    this.requireAuth();
-    return this.axios.get(`/nginx/proxy-hosts/${id}`);
+    return this.client.get(`/nginx/proxy-hosts/${id}`);
   }
 
   async createProxyHost(data: any) {
-    this.requireAuth();
-    return this.axios.post('/nginx/proxy-hosts', data);
+    return this.client.post('/nginx/proxy-hosts', data);
   }
 
   async updateProxyHost(id: number, data: any) {
-    this.requireAuth();
-    return this.axios.put(`/nginx/proxy-hosts/${id}`, data);
+    return this.client.put(`/nginx/proxy-hosts/${id}`, data);
   }
 
   async deleteProxyHost(id: number) {
-    this.requireAuth();
-    return this.axios.delete(`/nginx/proxy-hosts/${id}`);
+    return this.client.delete(`/nginx/proxy-hosts/${id}`);
   }
 
   async enableProxyHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/proxy-hosts/${id}/enable`);
+    return this.client.post(`/nginx/proxy-hosts/${id}/enable`);
   }
 
   async disableProxyHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/proxy-hosts/${id}/disable`);
+    return this.client.post(`/nginx/proxy-hosts/${id}/disable`);
   }
 
   // Certificates
   async getCertificates(expand?: string) {
-    this.requireAuth();
     const params = expand ? { expand } : {};
-    return this.axios.get('/nginx/certificates', { params });
+    return this.client.get('/nginx/certificates', { params });
+  }
+
+  async getCertificate(id: number) {
+    return this.client.get(`/nginx/certificates/${id}`);
   }
 
   async createCertificate(data: any) {
-    this.requireAuth();
-    return this.axios.post('/nginx/certificates', data);
-  }
-
-  async renewCertificate(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/certificates/${id}/renew`);
+    return this.client.post('/nginx/certificates', data);
   }
 
   async deleteCertificate(id: number) {
-    this.requireAuth();
-    return this.axios.delete(`/nginx/certificates/${id}`);
+    return this.client.delete(`/nginx/certificates/${id}`);
+  }
+
+  async renewCertificate(id: number) {
+    return this.client.post(`/nginx/certificates/${id}/renew`);
   }
 
   // Access Lists
   async getAccessLists(expand?: string) {
-    this.requireAuth();
     const params = expand ? { expand } : {};
-    return this.axios.get('/nginx/access-lists', { params });
+    return this.client.get('/nginx/access-lists', { params });
+  }
+
+  async getAccessList(id: number) {
+    return this.client.get(`/nginx/access-lists/${id}`);
   }
 
   async createAccessList(data: any) {
-    this.requireAuth();
-    return this.axios.post('/nginx/access-lists', data);
+    return this.client.post('/nginx/access-lists', data);
   }
 
   async updateAccessList(id: number, data: any) {
-    this.requireAuth();
-    return this.axios.put(`/nginx/access-lists/${id}`, data);
+    return this.client.put(`/nginx/access-lists/${id}`, data);
   }
 
   async deleteAccessList(id: number) {
-    this.requireAuth();
-    return this.axios.delete(`/nginx/access-lists/${id}`);
+    return this.client.delete(`/nginx/access-lists/${id}`);
+  }
+
+  // Users
+  async getUsers(expand?: string) {
+    const params = expand ? { expand } : {};
+    return this.client.get('/users', { params });
+  }
+
+  async getUser(id: number | 'me') {
+    return this.client.get(`/users/${id}`);
+  }
+
+  async createUser(data: any) {
+    return this.client.post('/users', data);
+  }
+
+  async updateUser(id: number | 'me', data: any) {
+    return this.client.put(`/users/${id}`, data);
+  }
+
+  async deleteUser(id: number) {
+    return this.client.delete(`/users/${id}`);
+  }
+
+  // Streams
+  async getStreams(expand?: string) {
+    const params = expand ? { expand } : {};
+    return this.client.get('/nginx/streams', { params });
+  }
+
+  async createStream(data: any) {
+    return this.client.post('/nginx/streams', data);
+  }
+
+  async updateStream(id: number, data: any) {
+    return this.client.put(`/nginx/streams/${id}`, data);
+  }
+
+  async deleteStream(id: number) {
+    return this.client.delete(`/nginx/streams/${id}`);
+  }
+
+  // Settings
+  async getSettings() {
+    return this.client.get('/settings');
+  }
+
+  async getSetting(id: string) {
+    return this.client.get(`/settings/${id}`);
+  }
+
+  async updateSetting(id: string, data: any) {
+    return this.client.put(`/settings/${id}`, data);
   }
 
   // Reports
   async getHostsReport() {
-    this.requireAuth();
-    return this.axios.get('/reports/hosts');
+    return this.client.get('/reports/hosts');
   }
 
   // Redirection Hosts
   async getRedirectionHosts(expand?: string) {
-    this.requireAuth();
     const params = expand ? { expand } : {};
-    return this.axios.get('/nginx/redirection-hosts', { params });
+    console.log(`[NPM-MCP] GET /nginx/redirection-hosts`);
+    return this.client.get('/nginx/redirection-hosts', { params });
   }
 
   async getRedirectionHost(id: number) {
-    this.requireAuth();
-    return this.axios.get(`/nginx/redirection-hosts/${id}`);
+    return this.client.get(`/nginx/redirection-hosts/${id}`);
   }
 
   async createRedirectionHost(data: any) {
-    this.requireAuth();
-    return this.axios.post('/nginx/redirection-hosts', data);
+    return this.client.post('/nginx/redirection-hosts', data);
   }
 
   async updateRedirectionHost(id: number, data: any) {
-    this.requireAuth();
-    return this.axios.put(`/nginx/redirection-hosts/${id}`, data);
+    return this.client.put(`/nginx/redirection-hosts/${id}`, data);
   }
 
   async deleteRedirectionHost(id: number) {
-    this.requireAuth();
-    return this.axios.delete(`/nginx/redirection-hosts/${id}`);
+    return this.client.delete(`/nginx/redirection-hosts/${id}`);
   }
 
   async enableRedirectionHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/redirection-hosts/${id}/enable`);
+    return this.client.post(`/nginx/redirection-hosts/${id}/enable`);
   }
 
   async disableRedirectionHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/redirection-hosts/${id}/disable`);
+    return this.client.post(`/nginx/redirection-hosts/${id}/disable`);
   }
 
   // Dead Hosts (404 Hosts)
   async getDeadHosts(expand?: string) {
-    this.requireAuth();
     const params = expand ? { expand } : {};
-    return this.axios.get('/nginx/dead-hosts', { params });
+    console.log(`[NPM-MCP] GET /nginx/dead-hosts`);
+    return this.client.get('/nginx/dead-hosts', { params });
   }
 
   async getDeadHost(id: number) {
-    this.requireAuth();
-    return this.axios.get(`/nginx/dead-hosts/${id}`);
+    return this.client.get(`/nginx/dead-hosts/${id}`);
   }
 
   async createDeadHost(data: any) {
-    this.requireAuth();
-    return this.axios.post('/nginx/dead-hosts', data);
+    return this.client.post('/nginx/dead-hosts', data);
   }
 
   async updateDeadHost(id: number, data: any) {
-    this.requireAuth();
-    return this.axios.put(`/nginx/dead-hosts/${id}`, data);
+    return this.client.put(`/nginx/dead-hosts/${id}`, data);
   }
 
   async deleteDeadHost(id: number) {
-    this.requireAuth();
-    return this.axios.delete(`/nginx/dead-hosts/${id}`);
+    return this.client.delete(`/nginx/dead-hosts/${id}`);
   }
 
   async enableDeadHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/dead-hosts/${id}/enable`);
+    return this.client.post(`/nginx/dead-hosts/${id}/enable`);
   }
 
   async disableDeadHost(id: number) {
-    this.requireAuth();
-    return this.axios.post(`/nginx/dead-hosts/${id}/disable`);
+    return this.client.post(`/nginx/dead-hosts/${id}/disable`);
   }
 
   // Audit Log
   async getAuditLog() {
-    this.requireAuth();
-    return this.axios.get('/audit-log');
-  }
-  
-  private requireAuth() {
-    if (!this.isAuthenticated()) {
-      throw new Error('Not authenticated. Please call npm_authenticate first.');
-    }
+    console.log(`[NPM-MCP] GET /audit-log`);
+    return this.client.get('/audit-log');
   }
 }
 
-// Schemas
+// Tool Schemas
 const AuthenticateSchema = z.object({
-  identity: z.string().describe('Email address'),
+  identity: z.string().describe('Username or email'),
   secret: z.string().describe('Password'),
-  baseUrl: z.string().optional().describe('Base URL for NPM API (e.g., http://192.168.2.4:81/api)'),
 });
 
 const ProxyHostSchema = z.object({
@@ -370,7 +322,7 @@ const DeadHostSchema = z.object({
   meta: z.object({}).optional(),
 });
 
-// Enhanced MCP Server
+// MCP Server
 class NginxProxyManagerMCPServer {
   private server: Server;
   private client: NginxProxyManagerClient;
@@ -379,7 +331,7 @@ class NginxProxyManagerMCPServer {
     this.server = new Server(
       {
         name: 'nginx-proxy-manager-mcp',
-        version: '1.1.0',
+        version: '1.0.0',
       },
       {
         capabilities: {
@@ -390,284 +342,250 @@ class NginxProxyManagerMCPServer {
 
     // Initialize with environment variables
     const baseUrl = process.env.NPM_BASE_URL || 'http://localhost:81/api';
-    logger.log(`Initializing with base URL: ${baseUrl}`);
+    console.log(`[NPM-MCP] Initializing with base URL: ${baseUrl}`);
     this.client = new NginxProxyManagerClient(baseUrl);
 
     this.setupHandlers();
   }
 
   private setupHandlers() {
-    // Helper to convert Zod schema to JSON Schema format for MCP
-    const toJsonSchema = (schema: z.ZodSchema<any>) => {
-      const jsonSchema = zodToJsonSchema(schema, { $refStrategy: 'none' });
-      // Ensure the schema has type: "object" at the root level
-      if (typeof jsonSchema === 'object' && jsonSchema !== null && !('type' in jsonSchema)) {
-        return { ...jsonSchema, type: 'object' };
-      }
-      return jsonSchema;
-    };
-
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const tools = [
+    this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
+      tools: [
         {
           name: 'npm_authenticate',
-          description: 'Authenticate with Nginx Proxy Manager. Required before using other tools.',
-          inputSchema: toJsonSchema(AuthenticateSchema),
-        },
-        {
-          name: 'npm_auth_status',
-          description: 'Check current authentication status',
-          inputSchema: toJsonSchema(z.object({})),
+          description: 'Authenticate with Nginx Proxy Manager',
+          inputSchema: AuthenticateSchema,
         },
         {
           name: 'npm_list_proxy_hosts',
           description: 'List all proxy hosts',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             expand: z.string().optional().describe('Expand: owner, certificate, access_list'),
-          })),
+          }),
         },
         {
           name: 'npm_get_proxy_host',
           description: 'Get a specific proxy host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Proxy host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_create_proxy_host',
           description: 'Create a new proxy host',
-          inputSchema: toJsonSchema(ProxyHostSchema),
+          inputSchema: ProxyHostSchema,
         },
         {
           name: 'npm_update_proxy_host',
           description: 'Update an existing proxy host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Proxy host ID'),
             data: ProxyHostSchema.partial(),
-          })),
+          }),
         },
         {
           name: 'npm_delete_proxy_host',
           description: 'Delete a proxy host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Proxy host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_enable_proxy_host',
           description: 'Enable a proxy host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Proxy host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_disable_proxy_host',
           description: 'Disable a proxy host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Proxy host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_list_certificates',
           description: 'List all certificates',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             expand: z.string().optional().describe('Expand: owner'),
-          })),
+          }),
         },
         {
           name: 'npm_create_certificate',
           description: 'Create a new certificate',
-          inputSchema: toJsonSchema(CertificateSchema),
+          inputSchema: CertificateSchema,
         },
         {
           name: 'npm_renew_certificate',
           description: 'Renew a certificate',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Certificate ID'),
-          })),
+          }),
         },
         {
           name: 'npm_delete_certificate',
           description: 'Delete a certificate',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Certificate ID'),
-          })),
+          }),
         },
         {
           name: 'npm_list_access_lists',
           description: 'List all access lists',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             expand: z.string().optional().describe('Expand: owner, items, clients, proxy_hosts'),
-          })),
+          }),
         },
         {
           name: 'npm_create_access_list',
           description: 'Create a new access list',
-          inputSchema: toJsonSchema(AccessListSchema),
+          inputSchema: AccessListSchema,
         },
         {
           name: 'npm_update_access_list',
           description: 'Update an access list',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Access list ID'),
             data: AccessListSchema.partial(),
-          })),
+          }),
         },
         {
           name: 'npm_delete_access_list',
           description: 'Delete an access list',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Access list ID'),
-          })),
+          }),
         },
         {
           name: 'npm_get_hosts_report',
           description: 'Get hosts statistics report',
-          inputSchema: toJsonSchema(z.object({})),
+          inputSchema: z.object({}),
         },
         // Redirection Hosts
         {
           name: 'npm_list_redirection_hosts',
           description: 'List all redirection hosts',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             expand: z.string().optional().describe('Expand: owner, certificate'),
-          })),
+          }),
         },
         {
           name: 'npm_get_redirection_host',
           description: 'Get a specific redirection host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Redirection host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_create_redirection_host',
           description: 'Create a new redirection host',
-          inputSchema: toJsonSchema(RedirectionHostSchema),
+          inputSchema: RedirectionHostSchema,
         },
         {
           name: 'npm_update_redirection_host',
           description: 'Update an existing redirection host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Redirection host ID'),
             data: RedirectionHostSchema.partial(),
-          })),
+          }),
         },
         {
           name: 'npm_delete_redirection_host',
           description: 'Delete a redirection host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Redirection host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_enable_redirection_host',
           description: 'Enable a redirection host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Redirection host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_disable_redirection_host',
           description: 'Disable a redirection host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('Redirection host ID'),
-          })),
+          }),
         },
         // Dead Hosts (404 Hosts)
         {
           name: 'npm_list_dead_hosts',
           description: 'List all 404 hosts',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             expand: z.string().optional().describe('Expand: owner, certificate'),
-          })),
+          }),
         },
         {
           name: 'npm_get_dead_host',
           description: 'Get a specific 404 host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('404 host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_create_dead_host',
           description: 'Create a new 404 host',
-          inputSchema: toJsonSchema(DeadHostSchema),
+          inputSchema: DeadHostSchema,
         },
         {
           name: 'npm_update_dead_host',
           description: 'Update an existing 404 host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('404 host ID'),
             data: DeadHostSchema.partial(),
-          })),
+          }),
         },
         {
           name: 'npm_delete_dead_host',
           description: 'Delete a 404 host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('404 host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_enable_dead_host',
           description: 'Enable a 404 host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('404 host ID'),
-          })),
+          }),
         },
         {
           name: 'npm_disable_dead_host',
           description: 'Disable a 404 host',
-          inputSchema: toJsonSchema(z.object({
+          inputSchema: z.object({
             id: z.number().describe('404 host ID'),
-          })),
+          }),
         },
         // Audit Log
         {
           name: 'npm_get_audit_log',
           description: 'Get the audit log',
-          inputSchema: toJsonSchema(z.object({})),
+          inputSchema: z.object({}),
         },
-      ];
-      
-      logger.log(`Returning ${tools.length} tools`);
-      return { tools };
-    });
+      ],
+    }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-      logger.log(`Tool called: ${name}`, args);
-
       try {
+        const { name, arguments: args } = request.params;
+
         switch (name) {
           case 'npm_authenticate': {
-            const { identity, secret, baseUrl } = AuthenticateSchema.parse(args);
-            if (baseUrl) {
-              this.client.updateBaseUrl(baseUrl);
-            }
-            const response = await this.client.authenticate(identity, secret);
-            return { 
-              content: [{ 
-                type: 'text', 
-                text: `Authentication successful. Token stored for future requests.\nExpires at: ${this.client.getAuthStatus().expiresAt}` 
-              }] 
-            };
-          }
-          
-          case 'npm_auth_status': {
-            const status = this.client.getAuthStatus();
-            return { 
-              content: [{ 
-                type: 'text', 
-                text: JSON.stringify(status, null, 2) 
-              }] 
-            };
+            const { identity, secret } = AuthenticateSchema.parse(args);
+            console.log(`[NPM-MCP] Tool called: npm_authenticate`);
+            await this.client.authenticate(identity, secret);
+            return { content: [{ type: 'text', text: 'Authentication successful' }] };
           }
 
           case 'npm_list_proxy_hosts': {
             const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_proxy_hosts`);
             const response = await this.client.getProxyHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} proxy hosts`);
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 
@@ -763,7 +681,9 @@ class NginxProxyManagerMCPServer {
           // Redirection Hosts
           case 'npm_list_redirection_hosts': {
             const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_redirection_hosts`);
             const response = await this.client.getRedirectionHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} redirection hosts`);
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 
@@ -806,7 +726,9 @@ class NginxProxyManagerMCPServer {
           // Dead Hosts (404 Hosts)
           case 'npm_list_dead_hosts': {
             const { expand } = args as { expand?: string };
+            console.log(`[NPM-MCP] Tool called: npm_list_dead_hosts`);
             const response = await this.client.getDeadHosts(expand);
+            console.log(`[NPM-MCP] Found ${response.data.length} dead hosts`);
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 
@@ -848,6 +770,7 @@ class NginxProxyManagerMCPServer {
 
           // Audit Log
           case 'npm_get_audit_log': {
+            console.log(`[NPM-MCP] Tool called: npm_get_audit_log`);
             const response = await this.client.getAuditLog();
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
@@ -856,32 +779,12 @@ class NginxProxyManagerMCPServer {
             throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
       } catch (error: any) {
-        logger.error(`Error executing tool ${name}`, error);
-        
-        if (error.message?.includes('Not authenticated')) {
-          throw new McpError(
-            ErrorCode.InvalidRequest,
-            'Authentication required. Please use npm_authenticate tool first.'
-          );
-        }
-        
         if (error.response) {
-          const status = error.response.status;
-          const message = error.response.data?.message || error.response.data?.error || 'Unknown error';
-          
-          if (status === 401) {
-            throw new McpError(
-              ErrorCode.InvalidRequest,
-              'Authentication failed or token expired. Please authenticate again.'
-            );
-          }
-          
           throw new McpError(
             ErrorCode.InternalError,
-            `NPM API Error (${status}): ${message}`
+            `API Error: ${error.response.status} - ${JSON.stringify(error.response.data)}`
           );
         }
-        
         throw error;
       }
     });
@@ -890,15 +793,10 @@ class NginxProxyManagerMCPServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    logger.log('Server started successfully');
-    console.error('Nginx Proxy Manager MCP server v1.1.0 running on stdio');
+    console.error('Nginx Proxy Manager MCP server running on stdio');
   }
 }
 
 // Main
 const server = new NginxProxyManagerMCPServer();
-server.run().catch((error) => {
-  logger.error('Failed to start server', error);
-  console.error(error);
-  process.exit(1);
-});
+server.run().catch(console.error);
