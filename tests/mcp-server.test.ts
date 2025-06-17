@@ -9,6 +9,7 @@ import { TEST_CONFIG } from './setup';
 describe('MCP Server Tools', () => {
   const testTools = [
     'npm_authenticate',
+    'npm_auth_status',
     'npm_list_proxy_hosts',
     'npm_get_proxy_host',
     'npm_create_proxy_host',
@@ -24,20 +25,39 @@ describe('MCP Server Tools', () => {
     'npm_create_access_list',
     'npm_update_access_list',
     'npm_delete_access_list',
-    'npm_get_hosts_report'
+    'npm_get_hosts_report',
+    'npm_list_redirection_hosts',
+    'npm_get_redirection_host',
+    'npm_create_redirection_host',
+    'npm_update_redirection_host',
+    'npm_delete_redirection_host',
+    'npm_enable_redirection_host',
+    'npm_disable_redirection_host',
+    'npm_list_dead_hosts',
+    'npm_get_dead_host',
+    'npm_create_dead_host',
+    'npm_update_dead_host',
+    'npm_delete_dead_host',
+    'npm_enable_dead_host',
+    'npm_disable_dead_host',
+    'npm_get_audit_log'
   ];
 
   describe('Tool Registration', () => {
     test('should register all expected tools', () => {
       // This test verifies that all expected tools are defined
-      expect(testTools).toHaveLength(17);
+      expect(testTools).toHaveLength(33);
       
       // Verify specific critical tools exist
       expect(testTools).toContain('npm_authenticate');
+      expect(testTools).toContain('npm_auth_status');
       expect(testTools).toContain('npm_list_proxy_hosts');
       expect(testTools).toContain('npm_create_proxy_host');
       expect(testTools).toContain('npm_list_certificates');
       expect(testTools).toContain('npm_get_hosts_report');
+      expect(testTools).toContain('npm_list_redirection_hosts');
+      expect(testTools).toContain('npm_list_dead_hosts');
+      expect(testTools).toContain('npm_get_audit_log');
     });
   });
 
@@ -47,8 +67,9 @@ describe('MCP Server Tools', () => {
       const authSchema = {
         type: 'object',
         properties: {
-          identity: { type: 'string', description: 'Username or email' },
-          secret: { type: 'string', description: 'Password' }
+          identity: { type: 'string', description: 'Email address' },
+          secret: { type: 'string', description: 'Password' },
+          baseUrl: { type: 'string', description: 'Base URL for NPM API' }
         },
         required: ['identity', 'secret']
       };
@@ -72,6 +93,39 @@ describe('MCP Server Tools', () => {
       expect(proxyHostSchema.required).toEqual([
         'domain_names', 'forward_scheme', 'forward_host', 'forward_port'
       ]);
+    });
+
+    test('redirection host creation should have correct schema structure', () => {
+      const redirectionHostSchema = {
+        type: 'object',
+        properties: {
+          domain_names: { type: 'array', items: { type: 'string' } },
+          forward_http_code: { type: 'number', minimum: 300, maximum: 308 },
+          forward_scheme: { type: 'string', enum: ['auto', 'http', 'https'] },
+          forward_domain_name: { type: 'string' },
+          preserve_path: { type: 'boolean' }
+        },
+        required: ['domain_names', 'forward_http_code', 'forward_scheme', 'forward_domain_name']
+      };
+      
+      expect(redirectionHostSchema.required).toEqual([
+        'domain_names', 'forward_http_code', 'forward_scheme', 'forward_domain_name'
+      ]);
+    });
+
+    test('dead host creation should have correct schema structure', () => {
+      const deadHostSchema = {
+        type: 'object',
+        properties: {
+          domain_names: { type: 'array', items: { type: 'string' } },
+          certificate_id: { type: ['number', 'string'] },
+          ssl_forced: { type: 'boolean' },
+          hsts_enabled: { type: 'boolean' }
+        },
+        required: ['domain_names']
+      };
+      
+      expect(deadHostSchema.required).toEqual(['domain_names']);
     });
   });
 
@@ -135,6 +189,37 @@ describe('MCP Server Tools', () => {
       expect(Array.isArray(validAccessList.clients)).toBe(true);
       expect(['allow', 'deny']).toContain(validAccessList.clients[0].directive);
     });
+
+    test('should validate redirection host parameters', () => {
+      const validRedirectionHost = {
+        domain_names: ['redirect.example.com'],
+        forward_http_code: 301,
+        forward_scheme: 'https',
+        forward_domain_name: 'target.example.com',
+        preserve_path: true
+      };
+      
+      expect(Array.isArray(validRedirectionHost.domain_names)).toBe(true);
+      expect(validRedirectionHost.forward_http_code).toBeGreaterThanOrEqual(300);
+      expect(validRedirectionHost.forward_http_code).toBeLessThanOrEqual(308);
+      expect(['auto', 'http', 'https']).toContain(validRedirectionHost.forward_scheme);
+      expect(typeof validRedirectionHost.forward_domain_name).toBe('string');
+      expect(typeof validRedirectionHost.preserve_path).toBe('boolean');
+    });
+
+    test('should validate dead host parameters', () => {
+      const validDeadHost = {
+        domain_names: ['404.example.com'],
+        ssl_forced: false,
+        hsts_enabled: false,
+        http2_support: false
+      };
+      
+      expect(Array.isArray(validDeadHost.domain_names)).toBe(true);
+      expect(typeof validDeadHost.ssl_forced).toBe('boolean');
+      expect(typeof validDeadHost.hsts_enabled).toBe('boolean');
+      expect(typeof validDeadHost.http2_support).toBe('boolean');
+    });
   });
 
   describe('Error Handling', () => {
@@ -176,6 +261,7 @@ describe('MCP Server Tools', () => {
       // Test a complete workflow scenario
       const workflow = [
         { tool: 'npm_authenticate', params: { identity: 'test@example.com', secret: 'password' } },
+        { tool: 'npm_auth_status', params: {} },
         { tool: 'npm_list_proxy_hosts', params: {} },
         { tool: 'npm_create_proxy_host', params: {
           domain_names: ['workflow.example.com'],
@@ -183,7 +269,17 @@ describe('MCP Server Tools', () => {
           forward_host: '192.168.1.200',
           forward_port: 3000
         }},
-        { tool: 'npm_get_hosts_report', params: {} }
+        { tool: 'npm_create_redirection_host', params: {
+          domain_names: ['redirect.example.com'],
+          forward_http_code: 301,
+          forward_scheme: 'https',
+          forward_domain_name: 'target.example.com'
+        }},
+        { tool: 'npm_create_dead_host', params: {
+          domain_names: ['404.example.com']
+        }},
+        { tool: 'npm_get_hosts_report', params: {} },
+        { tool: 'npm_get_audit_log', params: {} }
       ];
       
       workflow.forEach(step => {

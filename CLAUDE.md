@@ -54,9 +54,27 @@ NPM_BASE_URL=http://192.168.2.4:81/api node dist/npm-direct-tools.js get-audit-l
 - `enable-proxy-host <id>` - Enable proxy host
 - `disable-proxy-host <id>` - Disable proxy host
 - `list-certificates [expand]` - List all certificates
+- `create-certificate <json-data>` - Create new certificate
 - `renew-certificate <id>` - Renew certificate
 - `delete-certificate <id>` - Delete certificate
 - `list-access-lists [expand]` - List access lists
+- `create-access-list <json-data>` - Create new access list
+- `update-access-list <id> <json-data>` - Update access list
+- `delete-access-list <id>` - Delete access list
+- `list-redirection-hosts [expand]` - List all redirection hosts
+- `get-redirection-host <id>` - Get specific redirection host
+- `create-redirection-host <json-data>` - Create new redirection host
+- `update-redirection-host <id> <json-data>` - Update redirection host
+- `delete-redirection-host <id>` - Delete redirection host
+- `enable-redirection-host <id>` - Enable redirection host
+- `disable-redirection-host <id>` - Disable redirection host
+- `list-dead-hosts [expand]` - List all 404 hosts
+- `get-dead-host <id>` - Get specific 404 host
+- `create-dead-host <json-data>` - Create new 404 host
+- `update-dead-host <id> <json-data>` - Update 404 host
+- `delete-dead-host <id>` - Delete 404 host
+- `enable-dead-host <id>` - Enable 404 host
+- `disable-dead-host <id>` - Disable 404 host
 - `get-hosts-report` - Get hosts statistics
 - `get-audit-log` - Get audit log
 

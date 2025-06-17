@@ -255,12 +255,29 @@ class NginxProxyManagerClient {
 
   async createDeadHost(data: any) {
     this.requireAuth();
-    return this.axios.post('/nginx/dead-hosts', data);
+    // Convert boolean values to numeric for compatibility
+    const convertedData = this.convertBooleansToNumeric(data);
+    return this.axios.post('/nginx/dead-hosts', convertedData);
   }
 
   async updateDeadHost(id: number, data: any) {
     this.requireAuth();
-    return this.axios.put(`/nginx/dead-hosts/${id}`, data);
+    // Convert boolean values to numeric for compatibility
+    const convertedData = this.convertBooleansToNumeric(data);
+    return this.axios.put(`/nginx/dead-hosts/${id}`, convertedData);
+  }
+  
+  private convertBooleansToNumeric(data: any): any {
+    const booleanFields = ['ssl_forced', 'hsts_enabled', 'hsts_subdomains', 'http2_support'];
+    const converted = { ...data };
+    
+    booleanFields.forEach(field => {
+      if (field in converted && typeof converted[field] === 'boolean') {
+        converted[field] = converted[field] ? 1 : 0;
+      }
+    });
+    
+    return converted;
   }
 
   async deleteDeadHost(id: number) {
@@ -303,7 +320,12 @@ const ProxyHostSchema = z.object({
   forward_scheme: z.enum(['http', 'https']).describe('Forward scheme'),
   forward_host: z.string().describe('Forward host'),
   forward_port: z.number().min(1).max(65535).describe('Forward port'),
-  certificate_id: z.union([z.number().min(0), z.literal('new')]).optional(),
+  certificate_id: z.union([
+    z.number().min(0),
+    z.string().regex(/^\d+$/).transform(val => parseInt(val, 10)),
+    z.literal('new'),
+    z.literal(0)
+  ]).optional(),
   ssl_forced: z.boolean().optional(),
   hsts_enabled: z.boolean().optional(),
   hsts_subdomains: z.boolean().optional(),
@@ -349,7 +371,12 @@ const RedirectionHostSchema = z.object({
   forward_scheme: z.enum(['auto', 'http', 'https']).describe('Forward scheme'),
   forward_domain_name: z.string().describe('Target domain name'),
   preserve_path: z.boolean().optional().describe('Should the path be preserved'),
-  certificate_id: z.union([z.number().min(0), z.literal('new')]).optional(),
+  certificate_id: z.union([
+    z.number().min(0),
+    z.string().regex(/^\d+$/).transform(val => parseInt(val, 10)),
+    z.literal('new'),
+    z.literal(0)
+  ]).optional(),
   ssl_forced: z.boolean().optional(),
   hsts_enabled: z.boolean().optional(),
   hsts_subdomains: z.boolean().optional(),
@@ -361,7 +388,12 @@ const RedirectionHostSchema = z.object({
 
 const DeadHostSchema = z.object({
   domain_names: z.array(z.string()).describe('Array of domain names'),
-  certificate_id: z.union([z.number().min(0), z.literal('new')]).optional(),
+  certificate_id: z.union([
+    z.number().min(0),
+    z.string().regex(/^\d+$/).transform(val => parseInt(val, 10)),
+    z.literal('new'),
+    z.literal(0)
+  ]).optional(),
   ssl_forced: z.boolean().optional(),
   hsts_enabled: z.boolean().optional(),
   hsts_subdomains: z.boolean().optional(),
@@ -626,8 +658,11 @@ class NginxProxyManagerMCPServer {
         // Audit Log
         {
           name: 'npm_get_audit_log',
-          description: 'Get the audit log',
-          inputSchema: toJsonSchema(z.object({})),
+          description: 'Get the audit log with optional pagination',
+          inputSchema: toJsonSchema(z.object({
+            limit: z.number().min(1).max(1000).optional().describe('Maximum number of items to return (default: 100)'),
+            offset: z.number().min(0).optional().describe('Number of items to skip (default: 0)'),
+          })),
         },
       ];
       
@@ -733,8 +768,23 @@ class NginxProxyManagerMCPServer {
 
           case 'npm_list_access_lists': {
             const { expand } = args as { expand?: string };
-            const response = await this.client.getAccessLists(expand);
-            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+            try {
+              const response = await this.client.getAccessLists(expand);
+              return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+            } catch (error: any) {
+              // Handle server 500 error when using expand parameter
+              if (error.response?.status === 500 && expand) {
+                logger.log('Access list expand failed, retrying without expand parameter');
+                const response = await this.client.getAccessLists();
+                return { 
+                  content: [{ 
+                    type: 'text', 
+                    text: `Note: Server returned error with expand parameter. Returning basic list without expansion.\n\n${JSON.stringify(response.data, null, 2)}` 
+                  }] 
+                };
+              }
+              throw error;
+            }
           }
 
           case 'npm_create_access_list': {
@@ -848,7 +898,35 @@ class NginxProxyManagerMCPServer {
 
           // Audit Log
           case 'npm_get_audit_log': {
+            const { limit = 100, offset = 0 } = args as { limit?: number; offset?: number };
             const response = await this.client.getAuditLog();
+            
+            // Handle large audit logs by pagination
+            const data = response.data;
+            if (Array.isArray(data)) {
+              const totalItems = data.length;
+              const paginatedData = data.slice(offset, offset + limit);
+              
+              // Create summary for large responses
+              if (totalItems > limit) {
+                const summary = {
+                  total_items: totalItems,
+                  returned_items: paginatedData.length,
+                  limit: limit,
+                  offset: offset,
+                  has_more: (offset + limit) < totalItems,
+                  next_offset: (offset + limit) < totalItems ? offset + limit : null,
+                  items: paginatedData
+                };
+                return { 
+                  content: [{ 
+                    type: 'text', 
+                    text: JSON.stringify(summary, null, 2) 
+                  }] 
+                };
+              }
+            }
+            
             return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
           }
 

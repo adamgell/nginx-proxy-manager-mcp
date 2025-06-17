@@ -100,12 +100,79 @@ class NginxProxyManagerClient {
   async getHostsReport() {
     return this.client.get('/reports/hosts');
   }
+
+  // Redirection Hosts
+  async getRedirectionHosts(expand?: string) {
+    const params = expand ? { expand } : {};
+    return this.client.get('/nginx/redirection-hosts', { params });
+  }
+
+  async getRedirectionHost(id: number) {
+    return this.client.get(`/nginx/redirection-hosts/${id}`);
+  }
+
+  async createRedirectionHost(data: any) {
+    return this.client.post('/nginx/redirection-hosts', data);
+  }
+
+  async updateRedirectionHost(id: number, data: any) {
+    return this.client.put(`/nginx/redirection-hosts/${id}`, data);
+  }
+
+  async deleteRedirectionHost(id: number) {
+    return this.client.delete(`/nginx/redirection-hosts/${id}`);
+  }
+
+  async enableRedirectionHost(id: number) {
+    return this.client.post(`/nginx/redirection-hosts/${id}/enable`);
+  }
+
+  async disableRedirectionHost(id: number) {
+    return this.client.post(`/nginx/redirection-hosts/${id}/disable`);
+  }
+
+  // Dead Hosts (404 Hosts)
+  async getDeadHosts(expand?: string) {
+    const params = expand ? { expand } : {};
+    return this.client.get('/nginx/dead-hosts', { params });
+  }
+
+  async getDeadHost(id: number) {
+    return this.client.get(`/nginx/dead-hosts/${id}`);
+  }
+
+  async createDeadHost(data: any) {
+    return this.client.post('/nginx/dead-hosts', data);
+  }
+
+  async updateDeadHost(id: number, data: any) {
+    return this.client.put(`/nginx/dead-hosts/${id}`, data);
+  }
+
+  async deleteDeadHost(id: number) {
+    return this.client.delete(`/nginx/dead-hosts/${id}`);
+  }
+
+  async enableDeadHost(id: number) {
+    return this.client.post(`/nginx/dead-hosts/${id}/enable`);
+  }
+
+  async disableDeadHost(id: number) {
+    return this.client.post(`/nginx/dead-hosts/${id}/disable`);
+  }
+
+  // Audit Log
+  async getAuditLog() {
+    return this.client.get('/audit-log');
+  }
 }
 
 describe('Nginx Proxy Manager Client', () => {
   let client: NginxProxyManagerClient;
   let createdProxyHostId: number;
   let createdAccessListId: number;
+  let createdRedirectionHostId: number;
+  let createdDeadHostId: number;
 
   beforeAll(async () => {
     // Wait for NPM to be available
@@ -305,6 +372,170 @@ describe('Nginx Proxy Manager Client', () => {
       expect(typeof response.data.redirection).toBe('number');
       expect(typeof response.data.stream).toBe('number');
       expect(typeof response.data.dead).toBe('number');
+    });
+  });
+
+  describe('Redirection Hosts', () => {
+    test('should list redirection hosts', async () => {
+      const response = await client.getRedirectionHosts();
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test('should list redirection hosts with expand parameter', async () => {
+      const response = await client.getRedirectionHosts('owner,certificate');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test('should create a redirection host', async () => {
+      const redirectionHostData = {
+        domain_names: ['redirect.example.com'],
+        forward_http_code: 301,
+        forward_scheme: 'https',
+        forward_domain_name: 'target.example.com',
+        preserve_path: true,
+        ssl_forced: false,
+        block_exploits: true,
+        enabled: true
+      };
+
+      const response = await client.createRedirectionHost(redirectionHostData);
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty('id');
+      expect(response.data.domain_names).toEqual(['redirect.example.com']);
+      expect(response.data.forward_http_code).toBe(301);
+      expect(response.data.forward_domain_name).toBe('target.example.com');
+      
+      createdRedirectionHostId = response.data.id;
+    });
+
+    test('should get a specific redirection host', async () => {
+      const response = await client.getRedirectionHost(createdRedirectionHostId);
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty('id', createdRedirectionHostId);
+      expect(response.data.domain_names).toEqual(['redirect.example.com']);
+    });
+
+    test('should update a redirection host', async () => {
+      const updateData = {
+        forward_http_code: 302,
+        preserve_path: false
+      };
+
+      const response = await client.updateRedirectionHost(createdRedirectionHostId, updateData);
+      expect(response.status).toBe(200);
+      expect(response.data.forward_http_code).toBe(302);
+      expect(response.data.preserve_path).toBe(false);
+    });
+
+    test('should disable a redirection host', async () => {
+      const response = await client.disableRedirectionHost(createdRedirectionHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should enable a redirection host', async () => {
+      const response = await client.enableRedirectionHost(createdRedirectionHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should delete a redirection host', async () => {
+      const response = await client.deleteRedirectionHost(createdRedirectionHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should return 404 for non-existent redirection host', async () => {
+      await expect(client.getRedirectionHost(999999)).rejects.toMatchObject({
+        response: { status: 404 }
+      });
+    });
+  });
+
+  describe('Dead Hosts (404 Hosts)', () => {
+    test('should list dead hosts', async () => {
+      const response = await client.getDeadHosts();
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test('should list dead hosts with expand parameter', async () => {
+      const response = await client.getDeadHosts('owner,certificate');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test('should create a dead host', async () => {
+      const deadHostData = {
+        domain_names: ['404.example.com'],
+        ssl_forced: false,
+        hsts_enabled: false,
+        http2_support: false,
+        enabled: true
+      };
+
+      const response = await client.createDeadHost(deadHostData);
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty('id');
+      expect(response.data.domain_names).toEqual(['404.example.com']);
+      
+      createdDeadHostId = response.data.id;
+    });
+
+    test('should get a specific dead host', async () => {
+      const response = await client.getDeadHost(createdDeadHostId);
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty('id', createdDeadHostId);
+      expect(response.data.domain_names).toEqual(['404.example.com']);
+    });
+
+    test('should update a dead host', async () => {
+      const updateData = {
+        ssl_forced: true,
+        hsts_enabled: true
+      };
+
+      const response = await client.updateDeadHost(createdDeadHostId, updateData);
+      expect(response.status).toBe(200);
+      expect(response.data.ssl_forced).toBe(true);
+      expect(response.data.hsts_enabled).toBe(true);
+    });
+
+    test('should disable a dead host', async () => {
+      const response = await client.disableDeadHost(createdDeadHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should enable a dead host', async () => {
+      const response = await client.enableDeadHost(createdDeadHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should delete a dead host', async () => {
+      const response = await client.deleteDeadHost(createdDeadHostId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should return 404 for non-existent dead host', async () => {
+      await expect(client.getDeadHost(999999)).rejects.toMatchObject({
+        response: { status: 404 }
+      });
+    });
+  });
+
+  describe('Audit Log', () => {
+    test('should get audit log', async () => {
+      const response = await client.getAuditLog();
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+      
+      // If there are audit log entries, check their structure
+      if (response.data.length > 0) {
+        expect(response.data[0]).toHaveProperty('user_id');
+        expect(response.data[0]).toHaveProperty('object_type');
+        expect(response.data[0]).toHaveProperty('object_id');
+        expect(response.data[0]).toHaveProperty('action');
+        expect(response.data[0]).toHaveProperty('created_on');
+      }
     });
   });
 
