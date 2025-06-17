@@ -39,7 +39,7 @@ class Logger {
 const logger = new Logger();
 
 // Enhanced API Client with authentication state
-class NginxProxyManagerClient {
+export class NginxProxyManagerClient {
   private baseUrl: string;
   private axios: AxiosInstance;
   private token: string | null = null;
@@ -131,7 +131,12 @@ class NginxProxyManagerClient {
 
   async createProxyHost(data: any) {
     this.requireAuth();
-    return this.axios.post('/nginx/proxy-hosts', data);
+    // Ensure advanced_config is always included
+    const payload = {
+      advanced_config: '',
+      ...data
+    };
+    return this.axios.post('/nginx/proxy-hosts', payload);
   }
 
   async updateProxyHost(id: number, data: any) {
@@ -218,7 +223,12 @@ class NginxProxyManagerClient {
 
   async createRedirectionHost(data: any) {
     this.requireAuth();
-    return this.axios.post('/nginx/redirection-hosts', data);
+    // Ensure advanced_config is always included
+    const payload = {
+      advanced_config: '',
+      ...data
+    };
+    return this.axios.post('/nginx/redirection-hosts', payload);
   }
 
   async updateRedirectionHost(id: number, data: any) {
@@ -255,8 +265,13 @@ class NginxProxyManagerClient {
 
   async createDeadHost(data: any) {
     this.requireAuth();
+    // Ensure advanced_config is always included
+    const payload = {
+      advanced_config: '',
+      ...data
+    };
     // Convert boolean values to numeric for compatibility
-    const convertedData = this.convertBooleansToNumeric(data);
+    const convertedData = this.convertBooleansToNumeric(payload);
     return this.axios.post('/nginx/dead-hosts', convertedData);
   }
 

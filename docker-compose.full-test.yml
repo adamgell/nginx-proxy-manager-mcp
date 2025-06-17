@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  test-db:
+    image: mariadb:10.11
+    container_name: npm-test-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: npm_test_root_password
+      MYSQL_DATABASE: npm_test
+      MYSQL_USER: npm_test
+      MYSQL_PASSWORD: npm_test_password
+    volumes:
+      - test_db_data:/var/lib/mysql
+    networks:
+      - npm-test-network
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-pnpm_test_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  test-npm:
+    image: jc21/nginx-proxy-manager:2.11.3
+    container_name: npm-test-app
+    restart: unless-stopped
+    ports:
+      - "9080:80"    # HTTP
+      - "9443:443"   # HTTPS
+      - "9181:81"    # Admin UI
+    environment:
+      DB_MYSQL_HOST: test-db
+      DB_MYSQL_PORT: 3306
+      DB_MYSQL_USER: npm_test
+      DB_MYSQL_PASSWORD: npm_test_password
+      DB_MYSQL_NAME: npm_test
+      # Disable anonymous telemetry
+      DISABLE_IPV6: 'true'
+      # Set initial admin for testing
+      INITIAL_ADMIN_EMAIL: admin@test.local
+      INITIAL_ADMIN_PASSWORD: changeme123
+    volumes:
+      - test_npm_data:/data
+      - test_npm_ssl:/etc/letsencrypt
+      - ./tests/fixtures/npm-config:/data/nginx
+    networks:
+      - npm-test-network
+    depends_on:
+      test-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:81/api"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+
+networks:
+  npm-test-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  test_db_data:
+    driver: local
+  test_npm_data:
+    driver: local
+  test_npm_ssl:
+    driver: local

@@ -1,0 +1,126 @@
+{
+  "testUsers": [
+    {
+      "email": "admin@test.local",
+      "password": "changeme123",
+      "description": "Default admin user"
+    },
+    {
+      "email": "test@test.local",
+      "password": "testpass123",
+      "description": "Test user for operations"
+    }
+  ],
+  "proxyHosts": [
+    {
+      "name": "Basic HTTP Proxy",
+      "domain_names": ["test1.local"],
+      "forward_scheme": "http",
+      "forward_host": "192.168.1.100",
+      "forward_port": 8080,
+      "certificate_id": 0,
+      "ssl_forced": false,
+      "hsts_enabled": false,
+      "hsts_subdomains": false,
+      "http2_support": false,
+      "block_exploits": true,
+      "caching_enabled": false,
+      "allow_websocket_upgrade": false,
+      "access_list_id": 0,
+      "advanced_config": "",
+      "enabled": true,
+      "meta": {
+        "letsencrypt_agree": false,
+        "dns_challenge": false
+      }
+    },
+    {
+      "name": "HTTPS Proxy with Websockets",
+      "domain_names": ["test2.local", "www.test2.local"],
+      "forward_scheme": "https",
+      "forward_host": "192.168.1.101",
+      "forward_port": 443,
+      "certificate_id": 0,
+      "ssl_forced": true,
+      "hsts_enabled": true,
+      "hsts_subdomains": true,
+      "http2_support": true,
+      "block_exploits": true,
+      "caching_enabled": false,
+      "allow_websocket_upgrade": true,
+      "access_list_id": 0,
+      "advanced_config": "proxy_set_header Upgrade $http_upgrade;\nproxy_set_header Connection \"upgrade\";",
+      "enabled": true,
+      "meta": {
+        "letsencrypt_agree": false,
+        "dns_challenge": false
+      }
+    }
+  ],
+  "redirectionHosts": [
+    {
+      "name": "Simple Redirect",
+      "domain_names": ["redirect.local"],
+      "forward_http_code": 301,
+      "forward_scheme": "https",
+      "forward_domain_name": "target.local",
+      "preserve_path": true,
+      "certificate_id": 0,
+      "ssl_forced": false,
+      "hsts_enabled": false,
+      "hsts_subdomains": false,
+      "http2_support": false,
+      "block_exploits": true,
+      "advanced_config": "",
+      "enabled": true,
+      "meta": {}
+    }
+  ],
+  "deadHosts": [
+    {
+      "name": "404 Page",
+      "domain_names": ["404.local"],
+      "certificate_id": 0,
+      "ssl_forced": false,
+      "hsts_enabled": false,
+      "hsts_subdomains": false,
+      "http2_support": false,
+      "advanced_config": "",
+      "enabled": true,
+      "meta": {}
+    }
+  ],
+  "accessLists": [
+    {
+      "name": "Test Access List",
+      "satisfy_any": false,
+      "pass_auth": true,
+      "items": [
+        {
+          "username": "testuser",
+          "password": "testpass"
+        }
+      ],
+      "clients": [
+        {
+          "address": "192.168.1.0/24",
+          "directive": "allow"
+        },
+        {
+          "address": "10.0.0.0/8",
+          "directive": "deny"
+        }
+      ]
+    }
+  ],
+  "certificates": [
+    {
+      "name": "Self-Signed Test Cert",
+      "provider": "other",
+      "nice_name": "Test Certificate",
+      "domain_names": ["*.test.local"],
+      "expires_on": "2025-12-31 23:59:59",
+      "meta": {}
+    }
+  ]
+}
