@@ -1,64 +1,64 @@
-2025-06-17 01:22:17+00:00 [Note] [Entrypoint]: Entrypoint script for MariaDB Server 1:10.11.13+maria~ubu2204 started.
-2025-06-17 01:22:17+00:00 [Warn] [Entrypoint]: /sys/fs/cgroup///memory.pressure not writable, functionality unavailable to MariaDB
-2025-06-17 01:22:17+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
-2025-06-17 01:22:17+00:00 [Note] [Entrypoint]: Entrypoint script for MariaDB Server 1:10.11.13+maria~ubu2204 started.
-2025-06-17 01:22:17+00:00 [Note] [Entrypoint]: Initializing database files
-2025-06-17 01:22:18+00:00 [Note] [Entrypoint]: Database files initialized
-2025-06-17 01:22:18+00:00 [Note] [Entrypoint]: Starting temporary server
-2025-06-17 01:22:18+00:00 [Note] [Entrypoint]: Waiting for server startup
-2025-06-17  1:22:18 0 [Note] Starting MariaDB 10.11.13-MariaDB-ubu2204 source revision 8fb09426b98583916ccfd4f8c49741adc115bac3 server_uid LZ5pYRSfMNmPrIPsQAN9Z/SoloA= as process 95
-2025-06-17  1:22:18 0 [Note] InnoDB: Compressed tables use zlib 1.2.11
-2025-06-17  1:22:18 0 [Note] InnoDB: Number of transaction pools: 1
-2025-06-17  1:22:18 0 [Note] InnoDB: Using ARMv8 crc32 + pmull instructions
-2025-06-17  1:22:18 0 [Note] InnoDB: Using liburing
-2025-06-17  1:22:18 0 [Note] InnoDB: innodb_buffer_pool_size_max=128m, innodb_buffer_pool_size=128m
-2025-06-17  1:22:18 0 [Note] InnoDB: Completed initialization of buffer pool
-2025-06-17  1:22:18 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
-2025-06-17  1:22:18 0 [Note] InnoDB: End of log at LSN=45502
-2025-06-17  1:22:18 0 [Note] InnoDB: 128 rollback segments are active.
-2025-06-17  1:22:18 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
-2025-06-17  1:22:18 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
-2025-06-17  1:22:18 0 [Note] InnoDB: log sequence number 45502; transaction id 14
-2025-06-17  1:22:18 0 [Note] Plugin 'FEEDBACK' is disabled.
-2025-06-17  1:22:18 0 [Note] mariadbd: ready for connections.
+2025-06-17 01:29:01+00:00 [Note] [Entrypoint]: Entrypoint script for MariaDB Server 1:10.11.13+maria~ubu2204 started.
+2025-06-17 01:29:01+00:00 [Warn] [Entrypoint]: /sys/fs/cgroup///memory.pressure not writable, functionality unavailable to MariaDB
+2025-06-17 01:29:01+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2025-06-17 01:29:01+00:00 [Note] [Entrypoint]: Entrypoint script for MariaDB Server 1:10.11.13+maria~ubu2204 started.
+2025-06-17 01:29:01+00:00 [Note] [Entrypoint]: Initializing database files
+2025-06-17 01:29:02+00:00 [Note] [Entrypoint]: Database files initialized
+2025-06-17 01:29:02+00:00 [Note] [Entrypoint]: Starting temporary server
+2025-06-17 01:29:02+00:00 [Note] [Entrypoint]: Waiting for server startup
+2025-06-17  1:29:02 0 [Note] Starting MariaDB 10.11.13-MariaDB-ubu2204 source revision 8fb09426b98583916ccfd4f8c49741adc115bac3 server_uid LZ5pYRSfMNmPrIPsQAN9Z/SoloA= as process 99
+2025-06-17  1:29:02 0 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2025-06-17  1:29:02 0 [Note] InnoDB: Number of transaction pools: 1
+2025-06-17  1:29:02 0 [Note] InnoDB: Using ARMv8 crc32 + pmull instructions
+2025-06-17  1:29:02 0 [Note] InnoDB: Using liburing
+2025-06-17  1:29:02 0 [Note] InnoDB: innodb_buffer_pool_size_max=128m, innodb_buffer_pool_size=128m
+2025-06-17  1:29:02 0 [Note] InnoDB: Completed initialization of buffer pool
+2025-06-17  1:29:02 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2025-06-17  1:29:02 0 [Note] InnoDB: End of log at LSN=45502
+2025-06-17  1:29:02 0 [Note] InnoDB: 128 rollback segments are active.
+2025-06-17  1:29:02 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2025-06-17  1:29:02 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2025-06-17  1:29:02 0 [Note] InnoDB: log sequence number 45502; transaction id 14
+2025-06-17  1:29:02 0 [Note] Plugin 'FEEDBACK' is disabled.
+2025-06-17  1:29:02 0 [Note] mariadbd: ready for connections.
 Version: '10.11.13-MariaDB-ubu2204'  socket: '/run/mysqld/mysqld.sock'  port: 0  mariadb.org binary distribution
-2025-06-17 01:22:19+00:00 [Note] [Entrypoint]: Temporary server started.
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Creating database npm_test
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Creating user npm_test
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Giving user npm_test access to schema npm_test
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Securing system users (equivalent to running mysql_secure_installation)
+2025-06-17 01:29:03+00:00 [Note] [Entrypoint]: Temporary server started.
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Creating database npm_test
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Creating user npm_test
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Giving user npm_test access to schema npm_test
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Securing system users (equivalent to running mysql_secure_installation)
 
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Stopping temporary server
-2025-06-17  1:22:20 0 [Note] mariadbd (initiated by: unknown): Normal shutdown
-2025-06-17  1:22:20 0 [Note] InnoDB: FTS optimize thread exiting.
-2025-06-17  1:22:20 0 [Note] InnoDB: Starting shutdown...
-2025-06-17  1:22:20 0 [Note] InnoDB: Dumping buffer pool(s) to /var/lib/mysql/ib_buffer_pool
-2025-06-17  1:22:20 0 [Note] InnoDB: Buffer pool(s) dump completed at 250617  1:22:20
-2025-06-17  1:22:20 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
-2025-06-17  1:22:20 0 [Note] InnoDB: Shutdown completed; log sequence number 47092; transaction id 15
-2025-06-17  1:22:20 0 [Note] mariadbd: Shutdown complete
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: Temporary server stopped
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Stopping temporary server
+2025-06-17  1:29:04 0 [Note] mariadbd (initiated by: unknown): Normal shutdown
+2025-06-17  1:29:04 0 [Note] InnoDB: FTS optimize thread exiting.
+2025-06-17  1:29:04 0 [Note] InnoDB: Starting shutdown...
+2025-06-17  1:29:04 0 [Note] InnoDB: Dumping buffer pool(s) to /var/lib/mysql/ib_buffer_pool
+2025-06-17  1:29:04 0 [Note] InnoDB: Buffer pool(s) dump completed at 250617  1:29:04
+2025-06-17  1:29:04 0 [Note] InnoDB: Removed temporary tablespace data file: "./ibtmp1"
+2025-06-17  1:29:04 0 [Note] InnoDB: Shutdown completed; log sequence number 47092; transaction id 15
+2025-06-17  1:29:04 0 [Note] mariadbd: Shutdown complete
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: Temporary server stopped
 
-2025-06-17 01:22:20+00:00 [Note] [Entrypoint]: MariaDB init process done. Ready for start up.
+2025-06-17 01:29:04+00:00 [Note] [Entrypoint]: MariaDB init process done. Ready for start up.
 
-2025-06-17  1:22:20 0 [Note] Starting MariaDB 10.11.13-MariaDB-ubu2204 source revision 8fb09426b98583916ccfd4f8c49741adc115bac3 server_uid LZ5pYRSfMNmPrIPsQAN9Z/SoloA= as process 1
-2025-06-17  1:22:20 0 [Note] InnoDB: Compressed tables use zlib 1.2.11
-2025-06-17  1:22:20 0 [Note] InnoDB: Number of transaction pools: 1
-2025-06-17  1:22:20 0 [Note] InnoDB: Using ARMv8 crc32 + pmull instructions
-2025-06-17  1:22:20 0 [Note] InnoDB: Using liburing
-2025-06-17  1:22:20 0 [Note] InnoDB: innodb_buffer_pool_size_max=128m, innodb_buffer_pool_size=128m
-2025-06-17  1:22:20 0 [Note] InnoDB: Completed initialization of buffer pool
-2025-06-17  1:22:20 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
-2025-06-17  1:22:20 0 [Note] InnoDB: End of log at LSN=47092
-2025-06-17  1:22:20 0 [Note] InnoDB: 128 rollback segments are active.
-2025-06-17  1:22:20 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
-2025-06-17  1:22:20 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
-2025-06-17  1:22:20 0 [Note] InnoDB: log sequence number 47092; transaction id 15
-2025-06-17  1:22:20 0 [Note] Plugin 'FEEDBACK' is disabled.
-2025-06-17  1:22:20 0 [Note] InnoDB: Loading buffer pool(s) from /var/lib/mysql/ib_buffer_pool
-2025-06-17  1:22:20 0 [Note] InnoDB: Buffer pool(s) load completed at 250617  1:22:20
-2025-06-17  1:22:20 0 [Warning] You need to use --log-bin to make --expire-logs-days or --binlog-expire-logs-seconds work.
-2025-06-17  1:22:20 0 [Note] Server socket created on IP: '0.0.0.0'.
-2025-06-17  1:22:20 0 [Note] Server socket created on IP: '::'.
-2025-06-17  1:22:20 0 [Note] mariadbd: ready for connections.
+2025-06-17  1:29:04 0 [Note] Starting MariaDB 10.11.13-MariaDB-ubu2204 source revision 8fb09426b98583916ccfd4f8c49741adc115bac3 server_uid LZ5pYRSfMNmPrIPsQAN9Z/SoloA= as process 1
+2025-06-17  1:29:04 0 [Note] InnoDB: Compressed tables use zlib 1.2.11
+2025-06-17  1:29:04 0 [Note] InnoDB: Number of transaction pools: 1
+2025-06-17  1:29:04 0 [Note] InnoDB: Using ARMv8 crc32 + pmull instructions
+2025-06-17  1:29:04 0 [Note] InnoDB: Using liburing
+2025-06-17  1:29:04 0 [Note] InnoDB: innodb_buffer_pool_size_max=128m, innodb_buffer_pool_size=128m
+2025-06-17  1:29:04 0 [Note] InnoDB: Completed initialization of buffer pool
+2025-06-17  1:29:04 0 [Note] InnoDB: File system buffers for log disabled (block size=512 bytes)
+2025-06-17  1:29:04 0 [Note] InnoDB: End of log at LSN=47092
+2025-06-17  1:29:04 0 [Note] InnoDB: 128 rollback segments are active.
+2025-06-17  1:29:04 0 [Note] InnoDB: Setting file './ibtmp1' size to 12.000MiB. Physically writing the file full; Please wait ...
+2025-06-17  1:29:04 0 [Note] InnoDB: File './ibtmp1' size is now 12.000MiB.
+2025-06-17  1:29:04 0 [Note] InnoDB: log sequence number 47092; transaction id 15
+2025-06-17  1:29:04 0 [Note] InnoDB: Loading buffer pool(s) from /var/lib/mysql/ib_buffer_pool
+2025-06-17  1:29:04 0 [Note] Plugin 'FEEDBACK' is disabled.
+2025-06-17  1:29:04 0 [Warning] You need to use --log-bin to make --expire-logs-days or --binlog-expire-logs-seconds work.
+2025-06-17  1:29:04 0 [Note] InnoDB: Buffer pool(s) load completed at 250617  1:29:04
+2025-06-17  1:29:04 0 [Note] Server socket created on IP: '0.0.0.0'.
+2025-06-17  1:29:04 0 [Note] Server socket created on IP: '::'.
+2025-06-17  1:29:04 0 [Note] mariadbd: ready for connections.
 Version: '10.11.13-MariaDB-ubu2204'  socket: '/run/mysqld/mysqld.sock'  port: 3306  mariadb.org binary distribution

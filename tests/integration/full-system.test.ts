@@ -52,7 +52,7 @@ describe('Full System Integration Tests', () => {
       try {
         await client.deleteProxyHost(id);
         console.log(`  ✓ Deleted proxy host ${id}`);
-      } catch (e) {
+      } catch (e: any) {
         console.error(`  ✗ Failed to delete proxy host ${id}:`, e.message);
       }
     }
@@ -61,7 +61,7 @@ describe('Full System Integration Tests', () => {
       try {
         await client.deleteRedirectionHost(id);
         console.log(`  ✓ Deleted redirection host ${id}`);
-      } catch (e) {
+      } catch (e: any) {
         console.error(`  ✗ Failed to delete redirection host ${id}:`, e.message);
       }
     }
@@ -70,7 +70,7 @@ describe('Full System Integration Tests', () => {
       try {
         await client.deleteDeadHost(id);
         console.log(`  ✓ Deleted dead host ${id}`);
-      } catch (e) {
+      } catch (e: any) {
         console.error(`  ✗ Failed to delete dead host ${id}:`, e.message);
       }
     }
@@ -79,7 +79,7 @@ describe('Full System Integration Tests', () => {
       try {
         await client.deleteAccessList(id);
         console.log(`  ✓ Deleted access list ${id}`);
-      } catch (e) {
+      } catch (e: any) {
         console.error(`  ✗ Failed to delete access list ${id}:`, e.message);
       }
     }
@@ -160,6 +160,9 @@ describe('Full System Integration Tests', () => {
 
     test('should delete proxy host', async () => {
       const id = createdResources.proxyHosts.pop();
+      if (!id) {
+        throw new Error('No proxy host to delete');
+      }
       const response = await client.deleteProxyHost(id);
       
       expect(response.status).toBe(200);

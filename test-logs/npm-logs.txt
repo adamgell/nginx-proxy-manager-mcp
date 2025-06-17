@@ -33,71 +33,71 @@ Group: npm PGID:0 ID:0
 
 [1;34m❯ [1;36mStarting nginx ...[0m
 [1;34m❯ [1;36mStarting backend ...[0m
-[6/17/2025] [1:22:24 AM] [Global   ] › ℹ  info      Using MySQL configuration
-[6/17/2025] [1:22:24 AM] [Global   ] › ℹ  info      Creating a new JWT key pair...
-[6/17/2025] [1:22:28 AM] [Global   ] › ℹ  info      Wrote JWT key pair to config file: /data/keys.json
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      Current database version: none
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] auth Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] user Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] user_permission Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] proxy_host Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] redirection_host Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] dead_host Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] stream Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] certificate Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list_auth Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [initial-schema] audit_log Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [websockets] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [websockets] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [forward_host] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [forward_host] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [http2_support] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [http2_support] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [http2_support] redirection_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [http2_support] dead_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [forward_scheme] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [forward_scheme] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [disabled] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [disabled] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [disabled] redirection_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [disabled] dead_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [disabled] stream Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [custom_locations] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [custom_locations] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [hsts] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [hsts] proxy_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [hsts] redirection_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [hsts] dead_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [settings] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [settings] setting Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [access_list_client] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list_client Table created
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] access_list Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [pass_auth] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [pass_auth] access_list Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [redirection_scheme] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [redirection_scheme] redirection_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [redirection_status_code] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [redirection_status_code] redirection_host Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [stream_domain] stream Table altered
-[6/17/2025] [1:22:29 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
-[6/17/2025] [1:22:29 AM] [Setup    ] › ℹ  info      Creating a new user: admin@test.local with password: changeme123
-[6/17/2025] [1:22:30 AM] [Setup    ] › ℹ  info      Initial admin setup completed
-[6/17/2025] [1:22:30 AM] [Setup    ] › ℹ  info      Default settings added
-[6/17/2025] [1:22:30 AM] [Setup    ] › ℹ  info      Logrotate Timer initialized
-[6/17/2025] [1:22:30 AM] [Global   ] › ⬤  debug     CMD: logrotate /etc/logrotate.d/nginx-proxy-manager
-[6/17/2025] [1:22:30 AM] [Setup    ] › ℹ  info      Logrotate completed.
-[6/17/2025] [1:22:30 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
-[6/17/2025] [1:22:30 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
-[6/17/2025] [1:22:30 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
-[6/17/2025] [1:22:30 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
-[6/17/2025] [1:22:31 AM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
-[6/17/2025] [1:22:31 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
-[6/17/2025] [1:22:31 AM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
-[6/17/2025] [1:22:31 AM] [Global   ] › ℹ  info      Backend PID 163 listening on port 3000 ...
-[6/17/2025] [1:22:31 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process
+[6/17/2025] [1:29:08 AM] [Global   ] › ℹ  info      Using MySQL configuration
+[6/17/2025] [1:29:08 AM] [Global   ] › ℹ  info      Creating a new JWT key pair...
+[6/17/2025] [1:29:11 AM] [Global   ] › ℹ  info      Wrote JWT key pair to config file: /data/keys.json
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      Current database version: none
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] auth Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] user Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] user_permission Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] proxy_host Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] redirection_host Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] dead_host Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] stream Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] certificate Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] access_list_auth Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [initial-schema] audit_log Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [websockets] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [websockets] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [forward_host] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [forward_host] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [http2_support] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [http2_support] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [http2_support] redirection_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [http2_support] dead_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [forward_scheme] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [forward_scheme] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [disabled] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [disabled] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [disabled] redirection_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [disabled] dead_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [disabled] stream Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [custom_locations] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [custom_locations] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [hsts] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [hsts] proxy_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [hsts] redirection_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [hsts] dead_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [settings] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [settings] setting Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [access_list_client] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list_client Table created
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [access_list_client] access_list Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [access_list_client_fix] access_list Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [pass_auth] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [pass_auth] access_list Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [redirection_scheme] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [redirection_scheme] redirection_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [redirection_status_code] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [redirection_status_code] redirection_host Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [stream_domain] stream Table altered
+[6/17/2025] [1:29:12 AM] [Migrate  ] › ℹ  info      [stream_domain] Migrating Up...
+[6/17/2025] [1:29:12 AM] [Setup    ] › ℹ  info      Creating a new user: admin@test.local with password: changeme123
+[6/17/2025] [1:29:13 AM] [Setup    ] › ℹ  info      Initial admin setup completed
+[6/17/2025] [1:29:13 AM] [Setup    ] › ℹ  info      Default settings added
+[6/17/2025] [1:29:13 AM] [Setup    ] › ℹ  info      Logrotate Timer initialized
+[6/17/2025] [1:29:13 AM] [Global   ] › ⬤  debug     CMD: logrotate /etc/logrotate.d/nginx-proxy-manager
+[6/17/2025] [1:29:13 AM] [Setup    ] › ℹ  info      Logrotate completed.
+[6/17/2025] [1:29:13 AM] [IP Ranges] › ℹ  info      Fetching IP Ranges from online services...
+[6/17/2025] [1:29:13 AM] [IP Ranges] › ℹ  info      Fetching https://ip-ranges.amazonaws.com/ip-ranges.json
+[6/17/2025] [1:29:15 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v4
+[6/17/2025] [1:29:15 AM] [IP Ranges] › ℹ  info      Fetching https://www.cloudflare.com/ips-v6
+[6/17/2025] [1:29:15 AM] [SSL      ] › ℹ  info      Let's Encrypt Renewal Timer initialized
+[6/17/2025] [1:29:15 AM] [SSL      ] › ℹ  info      Renewing SSL certs expiring within 30 days ...
+[6/17/2025] [1:29:15 AM] [IP Ranges] › ℹ  info      IP Ranges Renewal Timer initialized
+[6/17/2025] [1:29:15 AM] [Global   ] › ℹ  info      Backend PID 162 listening on port 3000 ...
+[6/17/2025] [1:29:15 AM] [SSL      ] › ℹ  info      Completed SSL cert renew process

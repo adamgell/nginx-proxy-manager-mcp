@@ -42,13 +42,17 @@ wait_for_services() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        # Check if NPM API is responding
-        if curl -s -f http://localhost:9181/api > /dev/null 2>&1; then
+        # Check if NPM API is responding (expecting 302 redirect)
+        local response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:9181/api 2>/dev/null || echo "000")
+        
+        if [ "$response" = "302" ] || [ "$response" = "200" ]; then
             echo -e "${GREEN}✅ Services are ready!${NC}"
+            # Give it a few more seconds to fully initialize
+            sleep 5
             return 0
         fi
         
-        echo "  Waiting... ($attempt/$max_attempts)"
+        echo "  Waiting... ($attempt/$max_attempts) [HTTP: $response]"
         sleep 5
         ((attempt++))
     done
@@ -136,6 +140,17 @@ EOF
 main() {
     echo "1️⃣  Stopping any existing test containers..."
     docker-compose -f "$COMPOSE_FILE" down -v 2>/dev/null || true
+    
+    # Also stop any containers that might be using the same ports
+    echo "   Checking for containers using test ports..."
+    # Use different approach for macOS compatibility
+    for port in 9181 8181; do
+        containers=$(docker ps -q --filter "publish=$port")
+        if [ ! -z "$containers" ]; then
+            echo "   Stopping containers using port $port..."
+            docker stop $containers 2>/dev/null || true
+        fi
+    done
     
     echo -e "\n2️⃣  Starting fresh test environment..."
     docker-compose -f "$COMPOSE_FILE" up -d

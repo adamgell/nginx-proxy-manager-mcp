@@ -27,6 +27,21 @@ export class TestEnvironmentManager {
       // Stop any existing containers
       this.stopEnvironment(configFile);
       
+      // Stop any containers using our test ports
+      console.log('🔍 Checking for port conflicts...');
+      const testPorts = ['9181', '8181'];
+      for (const port of testPorts) {
+        try {
+          const result = execSync(`docker ps -q --filter "publish=${port}"`, { encoding: 'utf-8' }).trim();
+          if (result) {
+            console.log(`  Stopping containers using port ${port}...`);
+            execSync(`docker stop ${result}`, { stdio: 'ignore' });
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+      
       // Start fresh containers
       execSync(`docker-compose -f ${configFile} up -d`, {
         cwd: this.projectRoot,
