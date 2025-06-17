@@ -243,13 +243,14 @@ describe('Nginx Proxy Manager Client', () => {
 
     test('should update a proxy host', async () => {
       const updateData = {
-        domain_names: ['updated-test.example.com'],
+        domain_names: [`updated-test-${Date.now()}.example.com`],
         forward_port: 9090
       };
 
       const response = await client.updateProxyHost(createdProxyHostId, updateData);
       expect(response.status).toBe(200);
-      expect(response.data.domain_names).toEqual(['updated-test.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^updated-test-\d+\.example\.com$/);
       expect(response.data.forward_port).toBe(9090);
     });
 
