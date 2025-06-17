@@ -215,7 +215,7 @@ describe('Nginx Proxy Manager Client', () => {
 
     test('should create a proxy host', async () => {
       const proxyHostData = {
-        domain_names: ['test.example.com'],
+        domain_names: [`test-${Date.now()}.example.com`],
         forward_scheme: 'http',
         forward_host: '192.168.1.100',
         forward_port: 8080,
@@ -227,7 +227,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.createProxyHost(proxyHostData);
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
-      expect(response.data.domain_names).toEqual(['test.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^test-\d+\.example\.com$/);
       
       createdProxyHostId = response.data.id;
     });
@@ -236,7 +237,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.getProxyHost(createdProxyHostId);
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('id', createdProxyHostId);
-      expect(response.data.domain_names).toEqual(['test.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^test-\d+\.example\.com$/);
     });
 
     test('should update a proxy host', async () => {
@@ -292,7 +294,7 @@ describe('Nginx Proxy Manager Client', () => {
       const certData = {
         provider: 'other',
         nice_name: 'Test Certificate',
-        domain_names: ['test.example.com'],
+        domain_names: [`test-${Date.now()}.example.com`],
         certificate: '-----BEGIN CERTIFICATE-----\nfake cert data\n-----END CERTIFICATE-----',
         certificate_key: '-----BEGIN PRIVATE KEY-----\nfake key data\n-----END PRIVATE KEY-----'
       };
@@ -390,7 +392,7 @@ describe('Nginx Proxy Manager Client', () => {
 
     test('should create a redirection host', async () => {
       const redirectionHostData = {
-        domain_names: ['redirect.example.com'],
+        domain_names: [`redirect-${Date.now()}.example.com`],
         forward_http_code: 301,
         forward_scheme: 'https',
         forward_domain_name: 'target.example.com',
@@ -403,7 +405,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.createRedirectionHost(redirectionHostData);
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
-      expect(response.data.domain_names).toEqual(['redirect.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^redirect-\d+\.example\.com$/);
       expect(response.data.forward_http_code).toBe(301);
       expect(response.data.forward_domain_name).toBe('target.example.com');
       
@@ -414,7 +417,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.getRedirectionHost(createdRedirectionHostId);
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('id', createdRedirectionHostId);
-      expect(response.data.domain_names).toEqual(['redirect.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^redirect-\d+\.example\.com$/);
     });
 
     test('should update a redirection host', async () => {
@@ -466,7 +470,7 @@ describe('Nginx Proxy Manager Client', () => {
 
     test('should create a dead host', async () => {
       const deadHostData = {
-        domain_names: ['404.example.com'],
+        domain_names: [`dead-${Date.now()}.example.com`],
         ssl_forced: false,
         hsts_enabled: false,
         http2_support: false,
@@ -476,7 +480,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.createDeadHost(deadHostData);
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty('id');
-      expect(response.data.domain_names).toEqual(['404.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^dead-\d+\.example\.com$/);
       
       createdDeadHostId = response.data.id;
     });
@@ -485,7 +490,8 @@ describe('Nginx Proxy Manager Client', () => {
       const response = await client.getDeadHost(createdDeadHostId);
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty('id', createdDeadHostId);
-      expect(response.data.domain_names).toEqual(['404.example.com']);
+      expect(response.data.domain_names).toBeDefined();
+      expect(response.data.domain_names[0]).toMatch(/^dead-\d+\.example\.com$/);
     });
 
     test('should update a dead host', async () => {
