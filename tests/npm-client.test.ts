@@ -131,6 +131,36 @@ class NginxProxyManagerClient {
     return this.client.post(`/nginx/redirection-hosts/${id}/disable`);
   }
 
+  // Streams (TCP/UDP forwarding)
+  async getStreams(expand?: string) {
+    const params = expand ? { expand } : {};
+    return this.client.get('/nginx/streams', { params });
+  }
+
+  async getStream(id: number) {
+    return this.client.get(`/nginx/streams/${id}`);
+  }
+
+  async createStream(data: any) {
+    return this.client.post('/nginx/streams', data);
+  }
+
+  async updateStream(id: number, data: any) {
+    return this.client.put(`/nginx/streams/${id}`, data);
+  }
+
+  async deleteStream(id: number) {
+    return this.client.delete(`/nginx/streams/${id}`);
+  }
+
+  async enableStream(id: number) {
+    return this.client.post(`/nginx/streams/${id}/enable`);
+  }
+
+  async disableStream(id: number) {
+    return this.client.post(`/nginx/streams/${id}/disable`);
+  }
+
   // Dead Hosts (404 Hosts)
   async getDeadHosts(expand?: string) {
     const params = expand ? { expand } : {};
@@ -172,6 +202,7 @@ describe('Nginx Proxy Manager Client', () => {
   let createdProxyHostId: number;
   let createdAccessListId: number;
   let createdRedirectionHostId: number;
+  let createdStreamId: number;
   let createdDeadHostId: number;
 
   beforeAll(async () => {
@@ -451,6 +482,73 @@ describe('Nginx Proxy Manager Client', () => {
 
     test('should return 404 for non-existent redirection host', async () => {
       await expect(client.getRedirectionHost(999999)).rejects.toMatchObject({
+        response: { status: 404 }
+      });
+    });
+  });
+
+  describe('Streams', () => {
+    // NPM enforces unique incoming ports; derive one from the clock to avoid collisions
+    const incomingPort = 20000 + (Date.now() % 10000);
+
+    test('should list streams', async () => {
+      const response = await client.getStreams();
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.data)).toBe(true);
+    });
+
+    test('should create a stream', async () => {
+      const streamData = {
+        incoming_port: incomingPort,
+        forwarding_host: '192.168.1.50',
+        forwarding_port: 5432,
+        tcp_forwarding: true,
+        udp_forwarding: false
+      };
+
+      const response = await client.createStream(streamData);
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty('id');
+      expect(response.data.incoming_port).toBe(incomingPort);
+      expect(response.data.forwarding_host).toBe('192.168.1.50');
+
+      createdStreamId = response.data.id;
+    });
+
+    test('should get a specific stream', async () => {
+      const response = await client.getStream(createdStreamId);
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty('id', createdStreamId);
+      expect(response.data.incoming_port).toBe(incomingPort);
+    });
+
+    test('should update a stream', async () => {
+      const updateData = {
+        forwarding_port: 5433
+      };
+
+      const response = await client.updateStream(createdStreamId, updateData);
+      expect(response.status).toBe(200);
+      expect(response.data.forwarding_port).toBe(5433);
+    });
+
+    test('should disable a stream', async () => {
+      const response = await client.disableStream(createdStreamId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should enable a stream', async () => {
+      const response = await client.enableStream(createdStreamId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should delete a stream', async () => {
+      const response = await client.deleteStream(createdStreamId);
+      expect(response.status).toBe(200);
+    });
+
+    test('should return 404 for non-existent stream', async () => {
+      await expect(client.getStream(999999)).rejects.toMatchObject({
         response: { status: 404 }
       });
     });

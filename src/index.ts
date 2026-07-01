@@ -251,6 +251,43 @@ export class NginxProxyManagerClient {
     return this.axios.post(`/nginx/redirection-hosts/${id}/disable`);
   }
 
+  // Streams (TCP/UDP forwarding)
+  async getStreams(expand?: string) {
+    this.requireAuth();
+    const params = expand ? { expand } : {};
+    return this.axios.get('/nginx/streams', { params });
+  }
+
+  async getStream(id: number) {
+    this.requireAuth();
+    return this.axios.get(`/nginx/streams/${id}`);
+  }
+
+  async createStream(data: any) {
+    this.requireAuth();
+    return this.axios.post('/nginx/streams', data);
+  }
+
+  async updateStream(id: number, data: any) {
+    this.requireAuth();
+    return this.axios.put(`/nginx/streams/${id}`, data);
+  }
+
+  async deleteStream(id: number) {
+    this.requireAuth();
+    return this.axios.delete(`/nginx/streams/${id}`);
+  }
+
+  async enableStream(id: number) {
+    this.requireAuth();
+    return this.axios.post(`/nginx/streams/${id}/enable`);
+  }
+
+  async disableStream(id: number) {
+    this.requireAuth();
+    return this.axios.post(`/nginx/streams/${id}/disable`);
+  }
+
   // Dead Hosts (404 Hosts)
   async getDeadHosts(expand?: string) {
     this.requireAuth();
@@ -401,6 +438,24 @@ const RedirectionHostSchema = z.object({
   meta: z.object({}).optional(),
 });
 
+const StreamSchema = z.object({
+  incoming_port: z.number().min(1).max(65535).describe('Incoming port to listen on'),
+  forwarding_host: z.string().describe('Forward host (IP address or domain)'),
+  forwarding_port: z.number().min(1).max(65535).describe('Forward port'),
+  tcp_forwarding: z.boolean().optional().describe('Enable TCP forwarding'),
+  udp_forwarding: z.boolean().optional().describe('Enable UDP forwarding'),
+  certificate_id: z.union([
+    z.number().min(0),
+    z.string().regex(/^\d+$/).transform(val => parseInt(val, 10)),
+    z.literal('new'),
+    z.literal(0)
+  ]).optional(),
+  meta: z.object({}).optional(),
+  // NOTE: `enabled` is intentionally omitted — the NPM streams API rejects it on
+  // create/update (strict API schema). Zod strips it silently if passed, so the
+  // MCP tool stays robust. Use npm_enable_stream / npm_disable_stream to toggle.
+});
+
 const DeadHostSchema = z.object({
   domain_names: z.array(z.string()).describe('Array of domain names'),
   certificate_id: z.union([
@@ -426,7 +481,7 @@ class NginxProxyManagerMCPServer {
     this.server = new Server(
       {
         name: 'nginx-proxy-manager-mcp',
-        version: '1.1.0',
+        version: '1.2.0',
       },
       {
         capabilities: {
@@ -619,6 +674,55 @@ class NginxProxyManagerMCPServer {
           description: 'Disable a redirection host',
           inputSchema: toJsonSchema(z.object({
             id: z.number().describe('Redirection host ID'),
+          })),
+        },
+        // Streams (TCP/UDP forwarding)
+        {
+          name: 'npm_list_streams',
+          description: 'List all streams (TCP/UDP port forwards)',
+          inputSchema: toJsonSchema(z.object({
+            expand: z.string().optional().describe('Expand: owner, certificate'),
+          })),
+        },
+        {
+          name: 'npm_get_stream',
+          description: 'Get a specific stream',
+          inputSchema: toJsonSchema(z.object({
+            id: z.number().describe('Stream ID'),
+          })),
+        },
+        {
+          name: 'npm_create_stream',
+          description: 'Create a new stream (TCP/UDP port forward)',
+          inputSchema: toJsonSchema(StreamSchema),
+        },
+        {
+          name: 'npm_update_stream',
+          description: 'Update an existing stream',
+          inputSchema: toJsonSchema(z.object({
+            id: z.number().describe('Stream ID'),
+            data: StreamSchema.partial(),
+          })),
+        },
+        {
+          name: 'npm_delete_stream',
+          description: 'Delete a stream',
+          inputSchema: toJsonSchema(z.object({
+            id: z.number().describe('Stream ID'),
+          })),
+        },
+        {
+          name: 'npm_enable_stream',
+          description: 'Enable a stream',
+          inputSchema: toJsonSchema(z.object({
+            id: z.number().describe('Stream ID'),
+          })),
+        },
+        {
+          name: 'npm_disable_stream',
+          description: 'Disable a stream',
+          inputSchema: toJsonSchema(z.object({
+            id: z.number().describe('Stream ID'),
           })),
         },
         // Dead Hosts (404 Hosts)
@@ -868,6 +972,49 @@ class NginxProxyManagerMCPServer {
             return { content: [{ type: 'text', text: 'Redirection host disabled successfully' }] };
           }
 
+          // Streams (TCP/UDP forwarding)
+          case 'npm_list_streams': {
+            const { expand } = args as { expand?: string };
+            const response = await this.client.getStreams(expand);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_get_stream': {
+            const { id } = args as { id: number };
+            const response = await this.client.getStream(id);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_create_stream': {
+            const data = StreamSchema.parse(args);
+            const response = await this.client.createStream(data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_update_stream': {
+            const { id, data } = args as { id: number; data: any };
+            const response = await this.client.updateStream(id, data);
+            return { content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }] };
+          }
+
+          case 'npm_delete_stream': {
+            const { id } = args as { id: number };
+            await this.client.deleteStream(id);
+            return { content: [{ type: 'text', text: 'Stream deleted successfully' }] };
+          }
+
+          case 'npm_enable_stream': {
+            const { id } = args as { id: number };
+            await this.client.enableStream(id);
+            return { content: [{ type: 'text', text: 'Stream enabled successfully' }] };
+          }
+
+          case 'npm_disable_stream': {
+            const { id } = args as { id: number };
+            await this.client.disableStream(id);
+            return { content: [{ type: 'text', text: 'Stream disabled successfully' }] };
+          }
+
           // Dead Hosts (404 Hosts)
           case 'npm_list_dead_hosts': {
             const { expand } = args as { expand?: string };
@@ -984,7 +1131,7 @@ class NginxProxyManagerMCPServer {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     logger.log('Server started successfully');
-    console.error('Nginx Proxy Manager MCP server v1.1.0 running on stdio');
+    console.error('Nginx Proxy Manager MCP server v1.2.0 running on stdio');
   }
 }
 

@@ -29,6 +29,17 @@ export interface ProxyHost {
   enabled?: boolean;
 }
 
+export interface Stream {
+  incoming_port: number;
+  forwarding_host: string;
+  forwarding_port: number;
+  tcp_forwarding?: boolean;
+  udp_forwarding?: boolean;
+  certificate_id?: number | 'new';
+  meta?: Record<string, unknown>;
+  enabled?: boolean;
+}
+
 export class NPMDirectClient {
   private static instance: NPMDirectClient | null = null;
   private axios: AxiosInstance;
@@ -237,6 +248,47 @@ export class NPMDirectClient {
   async disableRedirectionHost(id: number): Promise<void> {
     this.requireAuth();
     await this.axios.post(`/nginx/redirection-hosts/${id}/disable`);
+  }
+
+  // Streams (TCP/UDP forwarding)
+  async listStreams(expand?: string): Promise<any[]> {
+    this.requireAuth();
+    const params = expand ? { expand } : {};
+    const response = await this.axios.get('/nginx/streams', { params });
+    return response.data;
+  }
+
+  async getStream(id: number): Promise<any> {
+    this.requireAuth();
+    const response = await this.axios.get(`/nginx/streams/${id}`);
+    return response.data;
+  }
+
+  async createStream(data: Stream): Promise<any> {
+    this.requireAuth();
+    const response = await this.axios.post('/nginx/streams', data);
+    return response.data;
+  }
+
+  async updateStream(id: number, data: Partial<Stream>): Promise<any> {
+    this.requireAuth();
+    const response = await this.axios.put(`/nginx/streams/${id}`, data);
+    return response.data;
+  }
+
+  async deleteStream(id: number): Promise<void> {
+    this.requireAuth();
+    await this.axios.delete(`/nginx/streams/${id}`);
+  }
+
+  async enableStream(id: number): Promise<void> {
+    this.requireAuth();
+    await this.axios.post(`/nginx/streams/${id}/enable`);
+  }
+
+  async disableStream(id: number): Promise<void> {
+    this.requireAuth();
+    await this.axios.post(`/nginx/streams/${id}/disable`);
   }
 
   // Dead Hosts (404 Hosts)

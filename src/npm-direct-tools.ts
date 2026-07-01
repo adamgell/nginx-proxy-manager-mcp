@@ -202,6 +202,39 @@ class NPMDirectTools {
     return 'Redirection host disabled successfully';
   }
 
+  // Streams (TCP/UDP forwarding)
+  async listStreams(expand?: string) {
+    const params = expand ? `?expand=${expand}` : '';
+    return await this.request('GET', `/nginx/streams${params}`);
+  }
+
+  async getStream(id: number) {
+    return await this.request('GET', `/nginx/streams/${id}`);
+  }
+
+  async createStream(data: any) {
+    return await this.request('POST', '/nginx/streams', data);
+  }
+
+  async updateStream(id: number, data: any) {
+    return await this.request('PUT', `/nginx/streams/${id}`, data);
+  }
+
+  async deleteStream(id: number) {
+    await this.request('DELETE', `/nginx/streams/${id}`);
+    return 'Stream deleted successfully';
+  }
+
+  async enableStream(id: number) {
+    await this.request('POST', `/nginx/streams/${id}/enable`);
+    return 'Stream enabled successfully';
+  }
+
+  async disableStream(id: number) {
+    await this.request('POST', `/nginx/streams/${id}/disable`);
+    return 'Stream disabled successfully';
+  }
+
   // Dead Hosts (404 Hosts)
   async listDeadHosts(expand?: string) {
     const params = expand ? `?expand=${expand}` : '';
@@ -369,6 +402,41 @@ async function run() {
         result = await tools.disableRedirectionHost(parseInt(args[0]));
         break;
         
+      // Streams
+      case 'list-streams':
+        result = await tools.listStreams(args[0]);
+        break;
+
+      case 'get-stream':
+        if (!args[0]) throw new Error('Usage: get-stream <id>');
+        result = await tools.getStream(parseInt(args[0]));
+        break;
+
+      case 'create-stream':
+        if (!args[0]) throw new Error('Usage: create-stream <json-data>');
+        result = await tools.createStream(JSON.parse(args[0]));
+        break;
+
+      case 'update-stream':
+        if (args.length < 2) throw new Error('Usage: update-stream <id> <json-data>');
+        result = await tools.updateStream(parseInt(args[0]), JSON.parse(args[1]));
+        break;
+
+      case 'delete-stream':
+        if (!args[0]) throw new Error('Usage: delete-stream <id>');
+        result = await tools.deleteStream(parseInt(args[0]));
+        break;
+
+      case 'enable-stream':
+        if (!args[0]) throw new Error('Usage: enable-stream <id>');
+        result = await tools.enableStream(parseInt(args[0]));
+        break;
+
+      case 'disable-stream':
+        if (!args[0]) throw new Error('Usage: disable-stream <id>');
+        result = await tools.disableStream(parseInt(args[0]));
+        break;
+
       // Dead Hosts
       case 'list-dead-hosts':
         result = await tools.listDeadHosts(args[0]);
@@ -443,6 +511,13 @@ if (command) {
   console.log('  delete-redirection-host <id>');
   console.log('  enable-redirection-host <id>');
   console.log('  disable-redirection-host <id>');
+  console.log('  list-streams [expand]');
+  console.log('  get-stream <id>');
+  console.log('  create-stream <json-data>');
+  console.log('  update-stream <id> <json-data>');
+  console.log('  delete-stream <id>');
+  console.log('  enable-stream <id>');
+  console.log('  disable-stream <id>');
   console.log('  list-dead-hosts [expand]');
   console.log('  get-dead-host <id>');
   console.log('  create-dead-host <json-data>');

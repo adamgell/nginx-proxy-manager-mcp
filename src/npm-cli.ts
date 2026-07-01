@@ -203,6 +203,107 @@ proxy
     }
   });
 
+// Stream commands (TCP/UDP forwarding)
+const stream = program
+  .command('stream')
+  .description('Manage streams (TCP/UDP port forwards)');
+
+stream
+  .command('list')
+  .description('List all streams')
+  .option('--expand <fields>', 'Expand fields (owner,certificate)')
+  .action(async (options) => {
+    try {
+      const streams = await npmClient.listStreams(options.expand);
+      console.log(JSON.stringify(streams, null, 2));
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+stream
+  .command('get <id>')
+  .description('Get a specific stream')
+  .action(async (id) => {
+    try {
+      const result = await npmClient.getStream(parseInt(id));
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+stream
+  .command('create')
+  .description('Create a new stream')
+  .requiredOption('-i, --incoming-port <port>', 'Incoming port to listen on')
+  .requiredOption('-h, --host <host>', 'Forward host')
+  .requiredOption('-p, --port <port>', 'Forward port')
+  .option('--tcp', 'Enable TCP forwarding')
+  .option('--udp', 'Enable UDP forwarding')
+  .action(async (options) => {
+    try {
+      const tcp = options.tcp || false;
+      const udp = options.udp || false;
+      const data = {
+        incoming_port: parseInt(options.incomingPort),
+        forwarding_host: options.host,
+        forwarding_port: parseInt(options.port),
+        // Default to TCP when neither flag is provided
+        tcp_forwarding: tcp || !udp,
+        udp_forwarding: udp,
+      };
+
+      const result = await npmClient.createStream(data);
+      console.log('Stream created:', result.id);
+      console.log(JSON.stringify(result, null, 2));
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+stream
+  .command('delete <id>')
+  .description('Delete a stream')
+  .action(async (id) => {
+    try {
+      await npmClient.deleteStream(parseInt(id));
+      console.log('Stream deleted');
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+stream
+  .command('enable <id>')
+  .description('Enable a stream')
+  .action(async (id) => {
+    try {
+      await npmClient.enableStream(parseInt(id));
+      console.log('Stream enabled');
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
+stream
+  .command('disable <id>')
+  .description('Disable a stream')
+  .action(async (id) => {
+    try {
+      await npmClient.disableStream(parseInt(id));
+      console.log('Stream disabled');
+    } catch (error: any) {
+      console.error('Error:', error.message);
+      process.exit(1);
+    }
+  });
+
 // Certificate commands
 const cert = program
   .command('cert')

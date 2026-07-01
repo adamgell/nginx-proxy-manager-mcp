@@ -33,6 +33,13 @@ describe('MCP Server Tools', () => {
     'npm_delete_redirection_host',
     'npm_enable_redirection_host',
     'npm_disable_redirection_host',
+    'npm_list_streams',
+    'npm_get_stream',
+    'npm_create_stream',
+    'npm_update_stream',
+    'npm_delete_stream',
+    'npm_enable_stream',
+    'npm_disable_stream',
     'npm_list_dead_hosts',
     'npm_get_dead_host',
     'npm_create_dead_host',
@@ -46,8 +53,8 @@ describe('MCP Server Tools', () => {
   describe('Tool Registration', () => {
     test('should register all expected tools', () => {
       // This test verifies that all expected tools are defined
-      expect(testTools).toHaveLength(33);
-      
+      expect(testTools).toHaveLength(40);
+
       // Verify specific critical tools exist
       expect(testTools).toContain('npm_authenticate');
       expect(testTools).toContain('npm_auth_status');
@@ -56,6 +63,8 @@ describe('MCP Server Tools', () => {
       expect(testTools).toContain('npm_list_certificates');
       expect(testTools).toContain('npm_get_hosts_report');
       expect(testTools).toContain('npm_list_redirection_hosts');
+      expect(testTools).toContain('npm_list_streams');
+      expect(testTools).toContain('npm_create_stream');
       expect(testTools).toContain('npm_list_dead_hosts');
       expect(testTools).toContain('npm_get_audit_log');
     });
@@ -110,6 +119,24 @@ describe('MCP Server Tools', () => {
       
       expect(redirectionHostSchema.required).toEqual([
         'domain_names', 'forward_http_code', 'forward_scheme', 'forward_domain_name'
+      ]);
+    });
+
+    test('stream creation should have correct schema structure', () => {
+      const streamSchema = {
+        type: 'object',
+        properties: {
+          incoming_port: { type: 'number', minimum: 1, maximum: 65535 },
+          forwarding_host: { type: 'string' },
+          forwarding_port: { type: 'number', minimum: 1, maximum: 65535 },
+          tcp_forwarding: { type: 'boolean' },
+          udp_forwarding: { type: 'boolean' }
+        },
+        required: ['incoming_port', 'forwarding_host', 'forwarding_port']
+      };
+
+      expect(streamSchema.required).toEqual([
+        'incoming_port', 'forwarding_host', 'forwarding_port'
       ]);
     });
 
@@ -205,6 +232,24 @@ describe('MCP Server Tools', () => {
       expect(['auto', 'http', 'https']).toContain(validRedirectionHost.forward_scheme);
       expect(typeof validRedirectionHost.forward_domain_name).toBe('string');
       expect(typeof validRedirectionHost.preserve_path).toBe('boolean');
+    });
+
+    test('should validate stream parameters', () => {
+      const validStream = {
+        incoming_port: 5432,
+        forwarding_host: '192.168.1.50',
+        forwarding_port: 5432,
+        tcp_forwarding: true,
+        udp_forwarding: false
+      };
+
+      expect(typeof validStream.incoming_port).toBe('number');
+      expect(validStream.incoming_port).toBeGreaterThan(0);
+      expect(validStream.incoming_port).toBeLessThan(65536);
+      expect(typeof validStream.forwarding_host).toBe('string');
+      expect(typeof validStream.forwarding_port).toBe('number');
+      expect(typeof validStream.tcp_forwarding).toBe('boolean');
+      expect(typeof validStream.udp_forwarding).toBe('boolean');
     });
 
     test('should validate dead host parameters', () => {

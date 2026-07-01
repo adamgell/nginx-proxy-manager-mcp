@@ -118,6 +118,15 @@ curl -I http://test.example.com
 - `npm_enable_redirection_host` - Enable a redirection host
 - `npm_disable_redirection_host` - Disable a redirection host
 
+### Streams (TCP/UDP forwarding)
+- `npm_list_streams` - List all streams
+- `npm_get_stream` - Get a specific stream
+- `npm_create_stream` - Create a new stream (TCP/UDP port forward)
+- `npm_update_stream` - Update an existing stream
+- `npm_delete_stream` - Delete a stream
+- `npm_enable_stream` - Enable a stream
+- `npm_disable_stream` - Disable a stream
+
 ### 404 Hosts  
 - `npm_list_dead_hosts` - List all 404 hosts
 - `npm_get_dead_host` - Get a specific 404 host

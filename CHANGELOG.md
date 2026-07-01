@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.0]
+
+### Added
+- **Nginx Streams (TCP/UDP) support**: 7 new MCP tools — `npm_list_streams`,
+  `npm_get_stream`, `npm_create_stream`, `npm_update_stream`, `npm_delete_stream`,
+  `npm_enable_stream`, `npm_disable_stream` — backed by the `/nginx/streams` API endpoints.
+- **CLI parity for streams**: new `stream` command group in `npm-cli` and
+  `*-stream` commands in `npm-direct` (list/get/create/update/delete/enable/disable).
+- Unit tests for stream tool registration and schema, plus integration tests covering
+  the full stream lifecycle (create → get → update → enable/disable → delete).
+
 ## [1.1.2] - 2025-01-17
 
 ### Fixed
