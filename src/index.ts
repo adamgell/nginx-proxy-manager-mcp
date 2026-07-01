@@ -443,6 +443,25 @@ class NginxProxyManagerMCPServer {
     this.setupHandlers();
   }
 
+  // Lazy auto-authentication from env credentials (NPM_EMAIL / NPM_PASSWORD).
+  // Runs before every tool call except the auth tools themselves; if the client
+  // is already authenticated (valid, non-expired token) it is a no-op. On failure
+  // it stays silent so the client's requireAuth() throws the standard error.
+  private async ensureAuthenticated(toolName: string) {
+    if (toolName === 'npm_authenticate' || toolName === 'npm_auth_status') return;
+    if (this.client.isAuthenticated()) return;
+    const identity = process.env.NPM_EMAIL;
+    const secret = process.env.NPM_PASSWORD;
+    if (identity && secret) {
+      try {
+        await this.client.authenticate(identity, secret);
+        logger.log('Auto-authenticated from NPM_EMAIL/NPM_PASSWORD env vars');
+      } catch (e) {
+        logger.error('Auto-auth from env failed', e);
+      }
+    }
+  }
+
   private setupHandlers() {
     // Helper to convert Zod schema to JSON Schema format for MCP
     const toJsonSchema = (schema: z.ZodSchema<any>) => {
@@ -690,6 +709,7 @@ class NginxProxyManagerMCPServer {
       logger.log(`Tool called: ${name}`, args);
 
       try {
+        await this.ensureAuthenticated(name);
         switch (name) {
           case 'npm_authenticate': {
             const { identity, secret, baseUrl } = AuthenticateSchema.parse(args);
