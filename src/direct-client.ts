@@ -5,6 +5,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { extractTokenCookie } from './auth-cookie.js';
 
 export interface NPMCredentials {
   identity: string;
@@ -33,6 +34,7 @@ export class NPMDirectClient {
   private static instance: NPMDirectClient | null = null;
   private axios: AxiosInstance;
   private token: string | null = null;
+  private cookie: string | null = null;
   private tokenExpiry: Date | null = null;
   private baseUrl: string;
 
@@ -48,8 +50,9 @@ export class NPMDirectClient {
 
     // Add auth interceptor
     this.axios.interceptors.request.use((config) => {
-      if (this.token && this.isTokenValid()) {
-        config.headers.Authorization = `Bearer ${this.token}`;
+      if (this.isTokenValid()) {
+        if (this.cookie) config.headers.Cookie = this.cookie;
+        if (this.token) config.headers.Authorization = `Bearer ${this.token}`;
       }
       return config;
     });
@@ -68,17 +71,23 @@ export class NPMDirectClient {
   }
 
   isAuthenticated(): boolean {
-    return this.token !== null && this.isTokenValid();
+    return (this.token !== null || this.cookie !== null) && this.isTokenValid();
   }
 
   async authenticate(identity: string, secret: string): Promise<string> {
     try {
       const response = await this.axios.post('/tokens', { identity, secret });
-      this.token = response.data.token;
-      this.tokenExpiry = new Date(Date.now() + 3600000); // 1 hour
+      this.token = response.data.token ?? null;
+      this.cookie = extractTokenCookie(response.headers['set-cookie']);
+      if (!this.token && !this.cookie) {
+        throw new Error('No token in /tokens response (2FA enabled on this account?)');
+      }
+      // Use the server-provided expiry when available, else assume 1 hour
+      this.tokenExpiry = response.data.expires ? new Date(response.data.expires) : new Date(Date.now() + 3600000);
       return `Authenticated successfully. Token expires at ${this.tokenExpiry.toISOString()}`;
     } catch (error: any) {
       this.token = null;
+      this.cookie = null;
       this.tokenExpiry = null;
       throw new Error(`Authentication failed: ${error.response?.data?.message || error.message}`);
     }
