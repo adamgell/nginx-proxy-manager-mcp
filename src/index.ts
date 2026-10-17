@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { extractTokenCookie } from './auth-cookie.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
@@ -43,6 +44,7 @@ export class NginxProxyManagerClient {
   private baseUrl: string;
   private axios: AxiosInstance;
   private token: string | null = null;
+  private cookie: string | null = null;
   private tokenExpiry: Date | null = null;
 
   constructor(baseUrl: string) {
@@ -57,8 +59,9 @@ export class NginxProxyManagerClient {
     
     // Add request interceptor for auth
     this.axios.interceptors.request.use((config) => {
-      if (this.token && this.isTokenValid()) {
-        config.headers.Authorization = `Bearer ${this.token}`;
+      if (this.isTokenValid()) {
+        if (this.cookie) config.headers.Cookie = this.cookie;
+        if (this.token) config.headers.Authorization = `Bearer ${this.token}`;
       }
       logger.log(`Request: ${config.method?.toUpperCase()} ${config.url}`);
       return config;
@@ -84,7 +87,7 @@ export class NginxProxyManagerClient {
   }
 
   isAuthenticated(): boolean {
-    return this.token !== null && this.isTokenValid();
+    return (this.token !== null || this.cookie !== null) && this.isTokenValid();
   }
   
   private isTokenValid(): boolean {
@@ -105,13 +108,18 @@ export class NginxProxyManagerClient {
   async authenticate(identity: string, secret: string) {
     try {
       const response = await this.axios.post('/tokens', { identity, secret });
-      this.token = response.data.token;
-      // NPM tokens typically expire after 1 hour
-      this.tokenExpiry = new Date(Date.now() + 3600000);
+      this.token = response.data.token ?? null;
+      this.cookie = extractTokenCookie(response.headers['set-cookie']);
+      if (!this.token && !this.cookie) {
+        throw new Error('No token in /tokens response (2FA enabled on this account?)');
+      }
+      // Use the server-provided expiry when available, else assume 1 hour
+      this.tokenExpiry = response.data.expires ? new Date(response.data.expires) : new Date(Date.now() + 3600000);
       logger.log('Authentication successful', { identity, expiresAt: this.tokenExpiry });
       return response;
     } catch (error) {
       this.token = null;
+      this.cookie = null;
       this.tokenExpiry = null;
       throw error;
     }
